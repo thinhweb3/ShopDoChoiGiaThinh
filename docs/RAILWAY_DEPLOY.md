@@ -59,6 +59,11 @@ Neu dung dang nhap Google, them dung ten bien sau:
 
 - `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID`
 - `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET`
+- `JAVA_TOOL_OPTIONS`
+- `SERVER_TOMCAT_THREADS_MAX`
+- `SERVER_TOMCAT_THREADS_MIN_SPARE`
+- `SERVER_TOMCAT_MAX_CONNECTIONS`
+- `SERVER_TOMCAT_PROCESSOR_CACHE`
 
 ## 5. Cau hinh luu anh de khong bi mat sau moi lan redeploy
 
@@ -92,7 +97,25 @@ Sau khi deploy xanh, mo cac URL sau:
 
 Neu dang nhap admin va upload anh duoc, service da o muc co the dung that.
 
-## 8. Loi hay gap
+## 8. Cau hinh toi uu RAM cho goi 1 GB
+
+Dat cac bien sau trong Railway:
+
+- `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=65 -XX:InitialRAMPercentage=25 -XX:MaxMetaspaceSize=192m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError`
+- `DB_MAX_POOL_SIZE=3`
+- `DB_MIN_IDLE=0`
+- `SERVER_TOMCAT_THREADS_MAX=30`
+- `SERVER_TOMCAT_THREADS_MIN_SPARE=5`
+- `SERVER_TOMCAT_MAX_CONNECTIONS=200`
+- `SERVER_TOMCAT_PROCESSOR_CACHE=20`
+
+Ly do:
+
+- Heap Java khong duoc an het 1 GB RAM, tranh bi Railway kill vi vuot memory.
+- Tomcat mac dinh cho toi 200 worker threads, qua du voi shop nho va ton RAM.
+- Pool ket noi database 3 connection la du cho luong truy cap nho.
+
+## 9. Loi hay gap
 
 - Build loi dependency Spring milestone:
   - Repo da duoc bo sung `spring-milestones` trong `pom.xml`. Neu van loi, thu `Redeploy` lai.

@@ -1,0 +1,38 @@
+<div xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/_layout :: dynamic(~{::main})}">
+    <main>
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4 p-md-5">
+                        <h4 class="fw-bold text-center mb-4">Thanh toán chuyển khoản – Quét mã QR</h4>
+                        <p class="text-muted text-center mb-3">Mã QR đã được điền sẵn <strong>tổng tiền đơn hàng</strong>. Bạn chỉ cần mở app ngân hàng và quét để chuyển khoản.</p>
+                        <div class="text-center mb-4">
+                            <img th:src="${qrImageUrl}" alt="Mã QR thanh toán" class="img-fluid border rounded" style="max-width: 280px;">
+                        </div>
+                        <div class="bg-light rounded p-3 mb-4">
+                            <p th:if="${qrAcqName}" class="mb-2"><span class="text-muted">Chuyển đến:</span> <strong th:text="${qrAcqName}"></strong></p>
+                            <p class="mb-2"><span class="text-muted">Số tài khoản:</span> <strong th:text="${qrAccount}"></strong></p>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Mã đơn hàng:</span>
+                                <strong th:text="'#' + ${order.maDonHang}"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Nội dung chuyển khoản:</span>
+                                <strong th:text="${transferContent}"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between fs-5 text-danger fw-bold">
+                                <span>Tổng tiền cần thanh toán:</span>
+                                <span th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                            </div>
+                        </div>
+                        <p class="text-muted small text-center">Sau khi chuyển khoản thành công, hãy chờ email báo có về Gmail đã cấu hình rồi nhấn nút bên dưới để hệ thống dò email, xác nhận thanh toán và trừ tồn kho.</p>
+                        <form th:action="@{/order/confirm-payment/{id}(id=${order.maDonHang})}" method="post" class="text-center">
+                            <button type="submit" class="btn btn-success btn-lg px-4">Kiểm tra Gmail nhận tiền</button>
+                        </form>
+                        <p th:if="${message}" class="text-danger text-center mt-3" th:text="${message}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

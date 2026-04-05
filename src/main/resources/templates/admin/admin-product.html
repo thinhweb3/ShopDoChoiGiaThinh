@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark m-0">Quản lý đồ chơi</h3>
+                <small class="text-muted">Form đã được tối giản theo bộ cột đồ chơi mới</small>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/admin/categories" class="btn btn-outline-secondary">
+                    <i class="fas fa-layer-group me-2"></i>Danh mục
+                </a>
+                <a href="/admin/types" class="btn btn-outline-secondary">
+                    <i class="fas fa-tags me-2"></i>Loại
+                </a>
+                <button th:if="${session.user != null and session.user.hasPermission('PRODUCT_CREATE')}"
+                        class="btn btn-primary" onclick="openModal(null)">
+                    <i class="fas fa-plus me-2"></i>Thêm đồ chơi
+                </button>
+            </div>
+        </div>
+
+        <div th:if="${message != null}" th:class="${'alert alert-dismissible fade show ' + (messageType == 'success' ? 'alert-success' : 'alert-danger')}" role="alert">
+            <i class="fas" th:classappend="${messageType == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="ps-4">Ảnh</th>
+                                <th>Mã hàng</th>
+                                <th>Tên hàng</th>
+                                <th>Loại hàng</th>
+                                <th>Nhóm hàng</th>
+                                <th>Thương hiệu</th>
+                                <th>Giá bán</th>
+                                <th>Tồn kho</th>
+                                <th>Được bán</th>
+                                <th class="text-end pe-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${products}">
+                                <td class="ps-4">
+                                    <img th:src="${@assetUrlService.product(p.hinhAnh)}" class="rounded border" style="width: 50px; height: 50px; object-fit: cover;">
+                                </td>
+                                <td class="fw-bold text-primary" th:text="${p.maMoHinh}">MH001</td>
+                                <td class="fw-bold text-dark" th:text="${p.tenMoHinh}">Tên hàng</td>
+                                <td th:text="${p.danhMuc != null ? p.danhMuc.tenDanhMuc : '-'}">Loại hàng</td>
+                                <td th:text="${p.nhomHang != null ? p.nhomHang : '-'}">Nhóm hàng</td>
+                                <td th:text="${p.hangSanXuat != null ? p.hangSanXuat.tenHang : '-'}">Thương hiệu</td>
+                                <td th:text="${p.giaBan != null ? #numbers.formatDecimal(p.giaBan, 0, 'COMMA', 0, 'POINT') + ' đ' : '-'}">0 đ</td>
+                                <td th:text="${p.tonKho != null ? p.tonKho : 0}">0</td>
+                                <td>
+                                    <span th:if="${p.duocBan}" class="badge bg-success-subtle text-success">Đang bán</span>
+                                    <span th:unless="${p.duocBan}" class="badge bg-secondary-subtle text-secondary">Tạm ẩn</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button th:if="${session.user != null and session.user.hasPermission('PRODUCT_UPDATE')}"
+                                            class="btn btn-sm btn-light border me-1"
+                                            th:data-id="${p.maMoHinh}"
+                                            onclick="openModal(this.getAttribute('data-id'))"
+                                            title="Sửa">
+                                        <i class="fas fa-pen text-primary"></i>
+                                    </button>
+                                    <a th:if="${session.user != null and session.user.hasPermission('PRODUCT_DELETE')}"
+                                       th:href="@{|/admin/products/delete/${p.maMoHinh}|}" class="btn btn-sm btn-light border text-danger" onclick="return confirm('Xóa món đồ chơi này?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <form id="productForm" action="/admin/products/save" method="post" enctype="multipart/form-data"
+                      th:attr="data-default-category-id=${defaultCategory.maDanhMuc},
+                               data-default-manufacturer-id=${defaultManufacturer.maHang}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Thêm đồ chơi</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="form-label mb-1">Loại hàng</label>
+                                    <a href="/admin/categories" class="small text-decoration-none">Thêm danh mục</a>
+                                </div>
+                                <select class="form-select" id="danhMuc" name="maDanhMuc">
+                                    <option th:value="${defaultCategory.maDanhMuc}">Chưa phân loại</option>
+                                    <option th:each="c : ${categories}" th:value="${c.maDanhMuc}" th:text="${c.tenDanhMuc}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="form-label mb-1">Loại / nhóm hàng</label>
+                                    <a href="/admin/types" class="small text-decoration-none">Thêm loại</a>
+                                </div>
+                                <input type="text" class="form-control" id="nhomHang" name="nhomHang" list="nhomHangOptions" placeholder="Mặc định: Không">
+                                <datalist id="nhomHangOptions">
+                                    <option th:each="type : ${productTypes}" th:value="${type.tenLoaiHang}"></option>
+                                </datalist>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Mã hàng <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="maMoHinh" name="maMoHinh" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tên hàng <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="tenMoHinh" name="tenMoHinh" required>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Thương hiệu</label>
+                                <select class="form-select" id="hangSanXuat" name="maHang">
+                                    <option th:value="${defaultManufacturer.maHang}">Không</option>
+                                    <option th:each="h : ${manufacturers}" th:value="${h.maHang}" th:text="${h.tenHang}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Giá bán</label>
+                                <input type="number" min="0" class="form-control" id="giaBan" name="giaBan" placeholder="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Giá vốn</label>
+                                <input type="number" min="0" class="form-control" id="giaVon" name="giaVon" placeholder="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tồn kho</label>
+                                <input type="number" min="0" class="form-control" id="tonKho" name="tonKho" placeholder="0">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Tồn nhỏ nhất</label>
+                                <input type="number" min="0" class="form-control" id="tonKhoToiThieu" name="tonKhoToiThieu" placeholder="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tồn lớn nhất</label>
+                                <input type="number" min="0" class="form-control" id="tonKhoToiDa" name="tonKhoToiDa" placeholder="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">ĐVT</label>
+                                <input type="text" class="form-control" id="donViTinh" name="donViTinh" placeholder="Mặc định: Không">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Quy cách</label>
+                                <input type="text" class="form-control" id="quyCach" name="quyCach" placeholder="Mặc định: Không">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Tỷ lệ</label>
+                                <input type="text" class="form-control" id="tyLe" name="tyLe" placeholder="Mặc định: Không">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Chất liệu</label>
+                                <input type="text" class="form-control" id="chatLieu" name="chatLieu" placeholder="Mặc định: Không">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Hình ảnh</label>
+                                <input type="file" class="form-control" id="imageFile" name="imageFile" accept="image/*">
+                                <small id="currentImageText" class="text-muted d-none"></small>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-check form-switch mt-4 pt-2">
+                                    <input class="form-check-input" type="checkbox" id="dangKy" name="dangKy">
+                                    <label class="form-check-label" for="dangKy">Đăng ký</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check form-switch mt-4 pt-2">
+                                    <input class="form-check-input" type="checkbox" id="duocBan" name="duocBan" checked>
+                                    <label class="form-check-label" for="duocBan">Được bán</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mt-4 pt-2">
+                                    <input class="form-check-input" type="checkbox" id="trangThai" name="trangThai" checked>
+                                    <label class="form-check-label" for="trangThai">Hiển thị trên gian hàng đồ chơi</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Mẫu ghi chú</label>
+                                <input type="text" class="form-control" id="mauGhiChu" name="mauGhiChu" placeholder="Mặc định: Không">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Mô tả</label>
+                                <textarea class="form-control" id="moTa" name="moTa" rows="4" placeholder="Mặc định: Không"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button th:if="${session.user != null and (session.user.hasPermission('PRODUCT_CREATE') or session.user.hasPermission('PRODUCT_UPDATE'))}"
+                                type="submit" class="btn btn-primary">Lưu đồ chơi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            const myModal = new bootstrap.Modal(document.getElementById('productModal'));
+            const productForm = document.getElementById('productForm');
+            const defaultCategoryId = productForm.dataset.defaultCategoryId ?? '';
+            const defaultManufacturerId = productForm.dataset.defaultManufacturerId ?? '';
+            if (id) {
+                document.getElementById('modalTitle').innerText = 'Cập nhật đồ chơi';
+                document.getElementById('maMoHinh').setAttribute('readonly', true);
+
+                fetch('/admin/products/api/' + id)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('maMoHinh').value = data.maMoHinh;
+                        document.getElementById('tenMoHinh').value = data.tenMoHinh;
+                        document.getElementById('danhMuc').value = data.maDanhMuc ?? '';
+                        document.getElementById('hangSanXuat').value = data.maHang ?? '';
+                        document.getElementById('nhomHang').value = data.nhomHang ?? '';
+                        document.getElementById('giaBan').value = data.giaBan ?? '';
+                        document.getElementById('giaVon').value = data.giaVon ?? '';
+                        document.getElementById('tonKho').value = data.tonKho ?? '';
+                        document.getElementById('tonKhoToiThieu').value = data.tonKhoToiThieu ?? '';
+                        document.getElementById('tonKhoToiDa').value = data.tonKhoToiDa ?? '';
+                        document.getElementById('donViTinh').value = data.donViTinh ?? '';
+                        document.getElementById('quyCach').value = data.quyCach ?? '';
+                        document.getElementById('tyLe').value = data.tyLe ?? '';
+                        document.getElementById('chatLieu').value = data.chatLieu ?? '';
+                        document.getElementById('dangKy').checked = !!data.dangKy;
+                        document.getElementById('duocBan').checked = !!data.duocBan;
+                        document.getElementById('moTa').value = data.moTa ?? '';
+                        document.getElementById('mauGhiChu').value = data.mauGhiChu ?? '';
+                        document.getElementById('trangThai').checked = !!data.trangThai;
+                        const currentImageText = document.getElementById('currentImageText');
+                        currentImageText.classList.remove('d-none');
+                        currentImageText.innerText = 'Ảnh hiện tại: ' + (data.hinhAnh ?? 'banner-bg.jpg');
+                        myModal.show();
+                    });
+            } else {
+                document.getElementById('modalTitle').innerText = 'Thêm đồ chơi mới';
+                document.getElementById('maMoHinh').removeAttribute('readonly');
+                productForm.reset();
+                document.getElementById('danhMuc').value = defaultCategoryId;
+                document.getElementById('hangSanXuat').value = defaultManufacturerId;
+                document.getElementById('nhomHang').value = 'Không';
+                document.getElementById('giaBan').value = 0;
+                document.getElementById('giaVon').value = 0;
+                document.getElementById('tonKho').value = 0;
+                document.getElementById('tonKhoToiThieu').value = 0;
+                document.getElementById('tonKhoToiDa').value = 0;
+                document.getElementById('donViTinh').value = 'Không';
+                document.getElementById('quyCach').value = 'Không';
+                document.getElementById('tyLe').value = 'Không';
+                document.getElementById('chatLieu').value = 'Không';
+                document.getElementById('mauGhiChu').value = 'Không';
+                document.getElementById('moTa').value = 'Không';
+                document.getElementById('dangKy').checked = false;
+                document.getElementById('trangThai').checked = true;
+                document.getElementById('duocBan').checked = true;
+                const currentImageText = document.getElementById('currentImageText');
+                currentImageText.classList.add('d-none');
+                currentImageText.innerText = '';
+                myModal.show();
+            }
+        }
+    </script>
+</body>
+</html>

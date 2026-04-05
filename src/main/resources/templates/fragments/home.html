@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/_layout :: dynamic(~{::main})}">
+<body>
+    <main>
+        <div class="banner-qc home-hero mb-5 d-flex align-items-center justify-content-center position-relative shadow-sm mx-3">
+            <div class="banner-overlay" style="border-radius: 20px;"></div>
+
+            <div class="position-relative text-center p-4 z-index-1 text-white">
+                <h1 class="fw-bold text-uppercase mb-3 display-4">Thế giới đồ chơi Gia Thịnh</h1>
+                <p class="mb-4 fs-5">
+                    Xem nhanh đồ chơi mới về, giá bán và tồn kho.
+                    Khi cần chốt đơn, khách liên hệ trực tiếp qua điện thoại hoặc Zalo.
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a th:href="@{/product/list}" class="btn btn-light rounded-pill px-4 py-3 fw-bold text-main shadow-sm">
+                        <i class="fas fa-box-open me-2"></i>Xem toàn bộ đồ chơi
+                    </a>
+                    <a class="btn btn-outline-light rounded-pill px-4 py-3 fw-bold"
+                       th:href="${storeContactZaloLink}" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-comment-dots me-2"></i>Nhắn Zalo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid px-5 mb-3">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 flex-wrap gap-2">
+                <h3 class="fw-bold text-uppercase border-start border-5 border-success ps-3 m-0 text-dark">
+                    Đồ chơi nổi bật
+                </h3>
+                <a th:href="@{/product/list}" class="text-decoration-none text-main fw-bold">
+                    Xem tất cả <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="container-fluid px-5 mb-5">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4">
+                <div class="col" th:each="p : ${topItems}">
+                    <div class="card h-100 product-card border-0 shadow-sm">
+                        <div class="bg-white text-center pt-3 rounded-top overflow-hidden">
+                            <a th:href="@{|/product/detail/${p.maMoHinh}|}">
+                                <img th:src="${@assetUrlService.product(p.hinhAnh)}"
+                                     class="card-img-top p-4"
+                                     style="height: 280px; object-fit: contain;"
+                                     alt="Ảnh đồ chơi">
+                            </a>
+                        </div>
+
+                        <div class="card-body d-flex flex-column">
+                            <div class="small text-muted mb-1" th:text="${p.danhMuc != null ? p.danhMuc.tenDanhMuc : 'Đồ chơi'}">Loại hàng</div>
+                            <h5 class="card-title mb-2">
+                                <a th:href="@{|/product/detail/${p.maMoHinh}|}" class="text-decoration-none text-dark fw-bold" th:text="${p.tenMoHinh}">
+                                    Tên đồ chơi
+                                </a>
+                            </h5>
+                            <div class="small text-muted mb-2" th:text="${p.hangSanXuat != null ? p.hangSanXuat.tenHang : 'Chưa cập nhật thương hiệu'}">Thương hiệu</div>
+                            <div class="fw-bold fs-4 text-main mb-2">
+                                <span th:if="${@productService.getMinPrice(p) != null}"
+                                      th:text="${#numbers.formatDecimal(@productService.getMinPrice(p), 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                <span th:if="${@productService.getMinPrice(p) == null}" class="text-muted small">Liên hệ</span>
+                            </div>
+                            <div class="small mb-3">
+                                <span class="badge bg-light text-dark border" th:text="'Tồn kho: ' + ${@productService.getAvailableStock(p)}"></span>
+                            </div>
+
+                            <div class="mt-auto d-grid gap-2">
+                                <a th:href="@{|/product/detail/${p.maMoHinh}|}" class="btn btn-outline-dark rounded-pill fw-semibold">
+                                    Xem chi tiết
+                                </a>
+                                <button type="button"
+                                        class="btn btn-success rounded-pill fw-semibold"
+                                        th:attr="data-product-code=${p.maMoHinh},
+                                                 data-product-name=${p.tenMoHinh},
+                                                 data-product-price=${@productService.getMinPrice(p) != null ? #numbers.formatDecimal(@productService.getMinPrice(p), 0, 'COMMA', 0, 'POINT') + ' đ' : 'Liên hệ'},
+                                                 data-product-stock=${@productService.getAvailableStock(p)}"
+                                        onclick="openOrderPopupFromElement(this)">
+                                    <i class="fas fa-phone-volume me-1"></i> Đặt hàng nhanh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${topItems == null or topItems.size() == 0}" class="text-center py-5 bg-light rounded">
+                <p class="text-muted mb-0">Đang cập nhật đồ chơi nổi bật...</p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

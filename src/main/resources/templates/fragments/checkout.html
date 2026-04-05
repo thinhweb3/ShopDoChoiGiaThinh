@@ -1,0 +1,277 @@
+<div xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/_layout :: dynamic(~{::main})}">
+    <main>
+        <div class="checkout-page">
+            <section class="checkout-hero">
+                <span class="checkout-kicker">
+                    <i class="fas fa-shield-alt"></i>
+                    Thanh toán an toàn
+                </span>
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3 mt-3">
+                    <div>
+                        <h1 class="checkout-title mb-2">Hoàn tất đơn hàng của bạn</h1>
+                        <p class="checkout-subtitle mb-0">
+                            Kiểm tra lại thông tin giao hàng, áp dụng voucher và chọn phương thức thanh toán phù hợp.
+                        </p>
+                    </div>
+                    <div class="text-lg-end">
+                        <div class="text-muted small">Đồ chơi trong đơn</div>
+                        <div class="fs-3 fw-bold text-dark" th:text="${#lists.size(cart)}">0</div>
+                    </div>
+                </div>
+                <div class="checkout-steps">
+                    <div class="checkout-step">
+                        <span class="checkout-step-index"><i class="fas fa-shopping-cart"></i></span>
+                        <span>Giỏ hàng</span>
+                    </div>
+                    <div class="checkout-step active">
+                        <span class="checkout-step-index">2</span>
+                        <span>Thanh toán</span>
+                    </div>
+                    <div class="checkout-step">
+                        <span class="checkout-step-index">3</span>
+                        <span>Hoàn tất</span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="row g-4 align-items-start">
+                <div class="col-xl-7">
+                    <section class="checkout-card">
+                        <div class="checkout-card-header">
+                            <h2 class="checkout-title">Thông tin giao hàng</h2>
+                            <p class="checkout-subtitle">Bạn có thể thay đổi địa chỉ giao ngay ở bước này trước khi xác nhận.</p>
+                        </div>
+                        <div class="checkout-card-body pt-4">
+                            <div th:if="${message}" class="alert alert-danger rounded-4 border-0 mb-4">
+                                <i class="fas fa-circle-exclamation me-2"></i>
+                                <span th:text="${message}"></span>
+                            </div>
+
+                            <form action="/order/purchase" method="post">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="checkout-label" for="recipientName">Người nhận</label>
+                                        <input id="recipientName" type="text" class="form-control checkout-input"
+                                               th:value="${session.user.hoTen}" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="checkout-label" for="recipientPhone">Số điện thoại</label>
+                                        <input id="recipientPhone" type="text" class="form-control checkout-input"
+                                               th:value="${session.user.soDienThoai}" readonly
+                                               placeholder="Chưa cập nhật số điện thoại">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="checkout-label" for="recipientEmail">Địa chỉ email</label>
+                                        <input id="recipientEmail" type="email" class="form-control checkout-input"
+                                               th:value="${session.user.email}" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="checkout-label" for="shippingAddress">Địa chỉ nhận hàng</label>
+                                        <input id="shippingAddress"
+                                               type="text"
+                                               class="form-control checkout-input"
+                                               name="address"
+                                               th:value="${session.user.diaChi}"
+                                               required
+                                               maxlength="255"
+                                               placeholder="Nhập địa chỉ giao hàng chi tiết"
+                                               pattern="[^+\-×÷&%^*()]*"
+                                               title="Không được chứa ký tự đặc biệt +-×÷&%^*()">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="checkout-label" for="orderNote">Ghi chú cho shop</label>
+                                        <textarea id="orderNote" class="form-control checkout-input" name="note" rows="4"
+                                                  placeholder="Ví dụ: giao giờ hành chính, gọi trước khi giao..."></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="checkout-note-box mt-4">
+                                    <i class="fas fa-truck-fast mt-1 text-main"></i>
+                                    <div>
+                                        <div class="fw-bold text-dark mb-1">Giao hàng tiêu chuẩn toàn quốc</div>
+                                        <div>Phí vận chuyển cố định <strong>30.000 đ</strong>. Đơn chuyển khoản sẽ được tạo mã QR tự động ở bước kế tiếp.</div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <h3 class="checkout-title fs-5">Phương thức thanh toán</h3>
+                                    <p class="checkout-subtitle">Chọn cách thanh toán phù hợp với nhu cầu của bạn.</p>
+                                </div>
+
+                                <div class="payment-grid mt-3">
+                                    <label class="payment-choice" for="pmCOD">
+                                        <input class="payment-radio" type="radio" name="paymentMethod" id="pmCOD" value="COD" checked>
+                                        <span class="payment-card">
+                                            <span class="payment-icon bg-success-subtle text-success">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                            </span>
+                                            <span class="payment-copy">
+                                                <strong>COD - Thanh toán khi nhận hàng</strong>
+                                                <small>Phù hợp nếu bạn muốn kiểm tra đơn và thanh toán trực tiếp cho shipper khi hàng đến.</small>
+                                            </span>
+                                        </span>
+                                    </label>
+
+                                    <label class="payment-choice" for="pmQR">
+                                        <input class="payment-radio" type="radio" name="paymentMethod" id="pmQR" value="CHUYEN_KHOAN">
+                                        <span class="payment-card">
+                                            <span class="payment-icon bg-info-subtle text-info">
+                                                <i class="fas fa-qrcode"></i>
+                                            </span>
+                                            <span class="payment-copy">
+                                                <strong>Chuyển khoản qua mã QR</strong>
+                                                <small>Hệ thống tạo sẵn mã QR với đúng số tiền và sẽ đối soát email báo có từ Gmail trước khi xác nhận thanh toán.</small>
+                                            </span>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="checkout-note-box mt-3" id="paymentHint">
+                                    <i class="fas fa-circle-info mt-1 text-main"></i>
+                                    <div>
+                                        <div class="fw-bold text-dark mb-1">Thanh toán COD đang được chọn</div>
+                                        <div>Bạn sẽ thanh toán khi nhận hàng. Nếu đổi sang chuyển khoản, nút xác nhận sẽ đưa bạn tới trang quét QR.</div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-success w-100 mt-4 checkout-submit">
+                                    <i class="fas fa-bag-shopping me-2"></i>
+                                    <span id="checkoutSubmitLabel">Xác nhận đặt hàng</span>
+                                </button>
+                            </form>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="col-xl-5">
+                    <aside class="checkout-card summary-card">
+                        <div class="checkout-card-header">
+                            <h2 class="checkout-title">Tóm tắt đơn hàng</h2>
+                            <p class="checkout-subtitle">Kiểm tra lại voucher và tổng thanh toán thực tế trước khi chốt đơn.</p>
+                        </div>
+                        <div class="checkout-card-body pt-4">
+                            <div class="voucher-box">
+                                <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
+                                    <div>
+                                        <div class="fw-bold text-dark">Mã giảm giá</div>
+                                        <div class="text-muted small">Áp dụng voucher để tiết kiệm hơn cho đơn hàng này.</div>
+                                    </div>
+                                    <span th:if="${session.voucher != null}" class="voucher-pill">
+                                        <i class="fas fa-ticket-alt"></i>
+                                        <span th:text="${session.voucher.maCode}">VOUCHER</span>
+                                    </span>
+                                </div>
+
+                                <form action="/order/apply-voucher" method="post" class="d-flex gap-2">
+                                    <input type="text" class="form-control checkout-input flex-grow-1"
+                                           name="voucherCode"
+                                           placeholder="Nhập mã giảm giá"
+                                           th:value="${session.voucher != null ? session.voucher.maCode : ''}"
+                                           th:readonly="${session.voucher != null}">
+                                    <button class="btn btn-dark rounded-4 px-4 fw-bold" type="submit"
+                                            th:if="${session.voucher == null}">
+                                        Áp dụng
+                                    </button>
+                                    <a href="/order/remove-voucher" class="btn btn-outline-danger rounded-4 px-4 fw-bold"
+                                       th:if="${session.voucher != null}">
+                                        Hủy
+                                    </a>
+                                </form>
+
+                                <div th:if="${voucherError}" class="text-danger small fw-bold mt-3" th:text="${voucherError}"></div>
+                                <div th:if="${voucherSuccess}" class="text-success small fw-bold mt-3" th:text="${voucherSuccess}"></div>
+                            </div>
+
+                            <div class="summary-items">
+                                <div th:each="item : ${cart}" class="summary-item">
+                                    <img th:src="${@assetUrlService.product(item.bienThe.moHinh.hinhAnh)}"
+                                         class="summary-thumb"
+                                         alt="Ảnh đồ chơi">
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="summary-name" th:text="${item.bienThe.moHinh.tenMoHinh}">Tên đồ chơi</div>
+                                        <div class="summary-meta">
+                                            <span th:text="${#strings.isEmpty(item.bienThe.kichThuoc) ? (#strings.isEmpty(item.bienThe.sku) ? 'Phiên bản tiêu chuẩn' : item.bienThe.sku) : item.bienThe.kichThuoc}">Phiên bản</span>
+                                            <span class="mx-1">•</span>
+                                            <span th:text="${'SL: ' + item.soLuong}">SL: 1</span>
+                                        </div>
+                                    </div>
+                                    <div class="summary-price"
+                                         th:text="${#numbers.formatDecimal(item.bienThe.giaBan * item.soLuong, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                        0 đ
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="price-breakdown">
+                                <div class="price-row">
+                                    <span>Tạm tính đồ chơi</span>
+                                    <strong th:text="${#numbers.formatDecimal(originalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</strong>
+                                </div>
+                                <div class="price-row discount">
+                                    <span>Giảm giá</span>
+                                    <strong th:text="${'- ' + #numbers.formatDecimal(discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">- 0 đ</strong>
+                                </div>
+                                <div class="price-row">
+                                    <span>Sau ưu đãi</span>
+                                    <strong th:text="${#numbers.formatDecimal(amount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</strong>
+                                </div>
+                                <div class="price-row">
+                                    <span>Phí vận chuyển</span>
+                                    <strong th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ'}">30.000 đ</strong>
+                                </div>
+                                <div class="price-row total">
+                                    <span>Tổng thanh toán</span>
+                                    <span class="text-danger"
+                                          th:text="${#numbers.formatDecimal(payableAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                        0 đ
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="summary-tip">
+                                <i class="fas fa-lock mt-1"></i>
+                                <div>
+                                    <strong>Lưu ý:</strong> Sau khi xác nhận, hệ thống sẽ tạo đơn ngay. Nếu bạn chọn chuyển khoản, trang kế tiếp sẽ hiển thị mã QR với số tiền đã điền sẵn.
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const codRadio = document.getElementById('pmCOD');
+                const qrRadio = document.getElementById('pmQR');
+                const submitLabel = document.getElementById('checkoutSubmitLabel');
+                const paymentHint = document.getElementById('paymentHint');
+
+                function renderPaymentState() {
+                    if (!submitLabel || !paymentHint || !codRadio || !qrRadio) {
+                        return;
+                    }
+
+                    if (qrRadio.checked) {
+                        submitLabel.textContent = 'Tiếp tục tới mã QR';
+                        paymentHint.innerHTML =
+                            '<i class="fas fa-circle-info mt-1 text-main"></i>' +
+                            '<div><div class="fw-bold text-dark mb-1">Chuyển khoản QR đang được chọn</div>' +
+                            '<div>Sau khi bấm xác nhận, bạn sẽ được chuyển sang trang quét QR. Khi ngân hàng gửi email báo có, hệ thống sẽ đọc Gmail để xác nhận đơn.</div></div>';
+                        return;
+                    }
+
+                    submitLabel.textContent = 'Xác nhận đặt hàng';
+                    paymentHint.innerHTML =
+                        '<i class="fas fa-circle-info mt-1 text-main"></i>' +
+                        '<div><div class="fw-bold text-dark mb-1">Thanh toán COD đang được chọn</div>' +
+                        '<div>Bạn sẽ thanh toán khi nhận hàng. Nếu đổi sang chuyển khoản, nút xác nhận sẽ đưa bạn tới trang quét QR.</div></div>';
+                }
+
+                codRadio.addEventListener('change', renderPaymentState);
+                qrRadio.addEventListener('change', renderPaymentState);
+                renderPaymentState();
+            });
+        </script>
+    </main>
+</div>

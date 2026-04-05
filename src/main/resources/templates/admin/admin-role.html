@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+
+    <style>
+        .role-meta {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .permission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .permission-card {
+            border: 1px solid var(--bs-border-color);
+            border-radius: 1rem;
+            padding: 1rem;
+            background: #fff;
+        }
+
+        .permission-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .permission-checks {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .permission-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+            width: 100%;
+            border: 1px solid #cfd6df;
+            border-radius: 0.9rem;
+            padding: 0.8rem 0.95rem;
+            background: #fff;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .permission-option:hover {
+            border-color: #7d8da1;
+            box-shadow: 0 0.2rem 0.7rem rgba(15, 23, 42, 0.06);
+        }
+
+        .permission-option.is-checked {
+            border-color: #0f67b1;
+            background: #eef7ff;
+            box-shadow: 0 0 0 1px rgba(15, 103, 177, 0.15);
+        }
+
+        .permission-option.is-disabled {
+            opacity: 0.7;
+        }
+
+        .permission-option-input {
+            width: 1.15rem;
+            height: 1.15rem;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        .permission-option-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .permission-option-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            font-weight: 600;
+            color: #243041;
+        }
+
+        .permission-option-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #0f67b1;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .permission-option.is-checked .permission-option-status {
+            opacity: 1;
+        }
+
+        .permission-option-body small {
+            display: block;
+            margin-top: 0.2rem;
+            font-weight: 400;
+            font-size: 0.76rem;
+            color: #6c757d;
+        }
+
+        .permission-hint {
+            transition: opacity 0.2s ease;
+        }
+
+        .permission-hint.is-disabled {
+            opacity: 0.65;
+        }
+
+        .role-modal-dialog {
+            transition: none;
+        }
+
+        .role-modal-content {
+            will-change: transform;
+        }
+
+        .role-modal-header {
+            cursor: grab;
+            user-select: none;
+        }
+
+        .role-modal-header.is-dragging {
+            cursor: grabbing;
+        }
+
+        .role-modal-body {
+            max-height: calc(100vh - 11rem);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+    </style>
+
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark m-0">Quản lý Quyền</h3>
+            <button th:if="${session.user != null and session.user.hasPermission('ROLE_CREATE')}"
+                    class="btn btn-primary" onclick="openRoleModal(null)">
+                <i class="fas fa-plus me-2"></i> Thêm quyền
+            </button>
+        </div>
+
+        <div th:if="${message != null}"
+             th:class="${'alert alert-dismissible fade show ' + (messageType == 'success' ? 'alert-success' : 'alert-danger')}"
+             role="alert">
+            <i class="fas" th:classappend="${messageType == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+            <span th:text="${message}">Thông báo</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="ps-4">Mã quyền</th>
+                                <th>Tên hiển thị</th>
+                                <th>Mô tả</th>
+                                <th>Thuộc tính</th>
+                                <th class="text-end pe-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="role : ${roles}">
+                                <td class="ps-4">
+                                    <span class="fw-bold text-dark" th:text="${role.code}">ADMIN</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark" th:text="${role.tenHienThi}">Quản trị viên</div>
+                                    <div class="small text-muted" th:text="${role.laVaiTroHeThong ? 'Vai trò hệ thống' : 'Vai trò tùy chỉnh'}">Vai trò hệ thống</div>
+                                </td>
+                                <td class="text-muted" th:text="${role.moTa}">Mô tả quyền</td>
+                                <td>
+                                    <div class="role-meta">
+                                        <span class="badge rounded-pill bg-light text-dark border"
+                                              th:text="${role.choPhepTruyCapAdmin ? 'Có quyền vào trang quản trị' : 'Không có quyền vào trang quản trị'}">Có quyền vào trang quản trị</span>
+                                        <span class="badge rounded-pill"
+                                              th:classappend="${role.laVaiTroHeThong ? ' bg-dark-subtle text-dark' : ' bg-info-subtle text-info'}"
+                                              th:text="${role.laVaiTroHeThong ? 'Hệ thống' : 'Tùy chỉnh'}">Hệ thống</span>
+                                        <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle"
+                                              th:text="${#lists.size(role.permissionCodes) + ' quyền thao tác'}">0 quyền thao tác</span>
+                                    </div>
+                                    <div class="small text-muted mt-2" th:text="${role.permissionSummaryText}">
+                                        Chưa cấu hình quyền thao tác
+                                    </div>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button th:if="${session.user != null and session.user.hasPermission('ROLE_UPDATE')}"
+                                            class="btn btn-sm btn-light border me-1"
+                                            th:onclick="'openRoleModal(' + ${role.maVaiTro} + ')'"
+                                            title="Sửa quyền">
+                                        <i class="fas fa-pen text-primary"></i>
+                                    </button>
+
+                                    <a th:if="${session.user != null and session.user.hasPermission('ROLE_DELETE') and !role.laVaiTroHeThong}"
+                                       th:href="@{|/admin/roles/delete/${role.maVaiTro}|}"
+                                       class="btn btn-sm btn-light border text-danger"
+                                       onclick="return confirm('Xác nhận xóa quyền này?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+
+                                    <button th:if="${role.laVaiTroHeThong}"
+                                            type="button"
+                                            class="btn btn-sm btn-light border text-muted"
+                                            disabled
+                                            title="Vai trò hệ thống không thể xóa">
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(roles)}">
+                                <td colspan="5" class="text-center text-muted py-4">Chưa có quyền nào được cấu hình.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="roleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable role-modal-dialog">
+            <div class="modal-content role-modal-content">
+                <form id="roleForm" action="/admin/roles/save" method="post">
+                    <div class="modal-header role-modal-header">
+                        <h5 class="modal-title" id="roleModalTitle">Thêm quyền mới</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body role-modal-body">
+                        <input type="hidden" id="roleId" name="maVaiTro">
+
+                        <div class="mb-3">
+                            <label class="form-label">Mã quyền <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="roleCode" name="code" required>
+                            <small class="text-muted fst-italic" id="roleCodeNote">Ví dụ: CEO, SALES_MANAGER, CONTENT_EDITOR</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên hiển thị <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="roleDisplayName" name="tenHienThi" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="roleDescription" name="moTa" rows="3" required></textarea>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="roleAdminAccess" name="choPhepTruyCapAdmin">
+                            <label class="form-check-label fw-semibold" for="roleAdminAccess">Cho phép truy cập khu vực quản trị</label>
+                        </div>
+                        <div class="small text-muted" id="roleUsageNote"></div>
+
+                        <hr class="my-4">
+
+                        <div id="permissionHint" class="permission-hint">
+                            <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                                <div>
+                                    <h6 class="fw-bold mb-1">Quyền thao tác theo nghiệp vụ</h6>
+                                    <p class="text-muted small mb-0">
+                                        Bật các checkbox như thêm, sửa, xóa, xác nhận đơn hàng để tạo nhiều vai trò khác nhau.
+                                    </p>
+                                </div>
+                                <span class="badge rounded-pill bg-light text-dark border" id="permissionCountBadge">0 quyền</span>
+                            </div>
+
+                            <div class="permission-grid">
+                                <div class="permission-card" th:each="entry : ${permissionGroups}">
+                                    <div class="permission-card-header">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold" th:text="${entry.key}">Danh mục</h6>
+                                            <small class="text-muted" th:text="${#lists.size(entry.value) + ' lựa chọn'}">3 lựa chọn</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="permission-checks">
+                                        <th:block th:each="permission : ${entry.value}">
+                                            <label class="permission-option">
+                                                <input class="form-check-input permission-option-input permission-input"
+                                                       type="checkbox"
+                                                       th:id="${'permission-' + permission.code}"
+                                                       name="permissionCodes"
+                                                       th:value="${permission.code}"
+                                                       autocomplete="off">
+                                                <span class="permission-option-body">
+                                                    <span class="permission-option-title">
+                                                        <span th:text="${permission.label}">Thêm danh mục</span>
+                                                        <span class="permission-option-status">
+                                                            <i class="fas fa-check"></i>
+                                                            <span>Đã chọn</span>
+                                                        </span>
+                                                    </span>
+                                                    <small th:text="${permission.description}">Mô tả quyền</small>
+                                                </span>
+                                            </label>
+                                        </th:block>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button th:if="${session.user != null and (session.user.hasPermission('ROLE_CREATE') or session.user.hasPermission('ROLE_UPDATE'))}"
+                                type="submit" class="btn btn-primary">Lưu quyền</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initializeRoleModalInteractions() {
+            const roleModal = document.getElementById('roleModal');
+            if (!roleModal || roleModal.dataset.interactionBound === 'true') {
+                return;
+            }
+
+            const modalHeader = roleModal.querySelector('.role-modal-header');
+            const modalContent = roleModal.querySelector('.role-modal-content');
+            let dragging = false;
+            let startX = 0;
+            let startY = 0;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            const applyPosition = (x, y) => {
+                modalContent.style.transform = `translate(${x}px, ${y}px)`;
+            };
+
+            const resetPosition = () => {
+                dragging = false;
+                offsetX = 0;
+                offsetY = 0;
+                modalContent.style.transform = 'translate(0, 0)';
+                modalHeader.classList.remove('is-dragging');
+                document.body.style.userSelect = '';
+            };
+
+            modalHeader.addEventListener('mousedown', (event) => {
+                if (event.target.closest('.btn-close')) {
+                    return;
+                }
+
+                dragging = true;
+                startX = event.clientX - offsetX;
+                startY = event.clientY - offsetY;
+                modalHeader.classList.add('is-dragging');
+                document.body.style.userSelect = 'none';
+            });
+
+            document.addEventListener('mousemove', (event) => {
+                if (!dragging) {
+                    return;
+                }
+
+                offsetX = event.clientX - startX;
+                offsetY = event.clientY - startY;
+                applyPosition(offsetX, offsetY);
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (!dragging) {
+                    return;
+                }
+
+                dragging = false;
+                modalHeader.classList.remove('is-dragging');
+                document.body.style.userSelect = '';
+            });
+
+            roleModal.addEventListener('hidden.bs.modal', resetPosition);
+            roleModal.dataset.interactionBound = 'true';
+        }
+
+        function openRoleModal(id) {
+            initializeRoleModalInteractions();
+
+            const roleModal = document.getElementById('roleModal');
+            const modal = new bootstrap.Modal(roleModal);
+            const form = document.getElementById('roleForm');
+            const roleCodeInput = document.getElementById('roleCode');
+            const roleCodeNote = document.getElementById('roleCodeNote');
+            const roleUsageNote = document.getElementById('roleUsageNote');
+            const roleAdminAccessInput = document.getElementById('roleAdminAccess');
+            const permissionInputs = Array.from(document.querySelectorAll('.permission-input'));
+            const permissionHint = document.getElementById('permissionHint');
+            const permissionCountBadge = document.getElementById('permissionCountBadge');
+            const roleModalBody = roleModal.querySelector('.role-modal-body');
+
+            const updatePermissionHint = () => {
+                const checkedPermissions = permissionInputs.filter(input => input.checked).length;
+                permissionCountBadge.innerText = checkedPermissions + ' quyền';
+                permissionHint.classList.toggle('is-disabled', !roleAdminAccessInput.checked);
+                permissionInputs.forEach(input => {
+                    const option = input.closest('.permission-option');
+                    if (option) {
+                        option.classList.toggle('is-checked', input.checked);
+                        option.classList.toggle('is-disabled', !roleAdminAccessInput.checked);
+                    }
+                });
+            };
+
+            const setSelectedPermissions = (permissionCodes) => {
+                const selectedPermissions = Array.isArray(permissionCodes) ? permissionCodes.map(String) : [];
+                permissionInputs.forEach(input => {
+                    input.checked = selectedPermissions.includes(input.value);
+                });
+                updatePermissionHint();
+            };
+
+            permissionInputs.forEach(input => {
+                if (!input.dataset.listenerBound) {
+                    input.addEventListener('change', updatePermissionHint);
+                    input.dataset.listenerBound = 'true';
+                }
+            });
+            if (!roleAdminAccessInput.dataset.listenerBound) {
+                roleAdminAccessInput.addEventListener('change', updatePermissionHint);
+                roleAdminAccessInput.dataset.listenerBound = 'true';
+            }
+
+            if (id) {
+                document.getElementById('roleModalTitle').innerText = 'Cập nhật quyền';
+                fetch('/admin/roles/api/' + id)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('roleId').value = data.maVaiTro;
+                        roleCodeInput.value = data.code;
+                        document.getElementById('roleDisplayName').value = data.tenHienThi;
+                        document.getElementById('roleDescription').value = data.moTa;
+                        roleAdminAccessInput.checked = Boolean(data.choPhepTruyCapAdmin);
+                        setSelectedPermissions(data.permissionCodes);
+
+                        if (Boolean(data.laVaiTroHeThong)) {
+                            roleCodeInput.setAttribute('readonly', true);
+                            roleCodeNote.innerText = 'Vai trò hệ thống không cho phép đổi mã quyền.';
+                        } else {
+                            roleCodeInput.removeAttribute('readonly');
+                            roleCodeNote.innerText = 'Ví dụ: CEO, SALES_MANAGER, CONTENT_EDITOR';
+                        }
+
+                        roleUsageNote.innerText = 'Đang được gán cho ' + (data.soTaiKhoan || 0) + ' tài khoản.';
+                        roleModalBody.scrollTop = 0;
+                        modal.show();
+                    })
+                    .catch(() => alert('Lỗi tải dữ liệu quyền!'));
+                return;
+            }
+
+            form.reset();
+            document.getElementById('roleModalTitle').innerText = 'Thêm quyền mới';
+            document.getElementById('roleId').value = '';
+            roleCodeInput.removeAttribute('readonly');
+            roleCodeNote.innerText = 'Ví dụ: CEO, SALES_MANAGER, CONTENT_EDITOR';
+            roleUsageNote.innerText = 'Khi tạo xong, quyền mới sẽ xuất hiện dưới dạng checkbox trong màn hình tài khoản.';
+            roleAdminAccessInput.checked = false;
+            setSelectedPermissions([]);
+            roleModalBody.scrollTop = 0;
+            modal.show();
+        }
+    </script>
+
+</body>
+</html>

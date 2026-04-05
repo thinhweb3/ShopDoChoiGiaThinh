@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/_layout :: dynamic(~{::main})}">
+<body>
+    <main>
+        <div class="container py-5">
+            <div class="mb-4">
+                <a href="/order/list" class="text-decoration-none text-muted hover-main">
+                    <i class="fas fa-arrow-left me-2"></i> Quay lại lịch sử đơn hàng
+                </a>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="fw-bold m-0 text-main">Thông tin đơn hàng</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span class="text-muted">Mã đơn hàng:</span>
+                                    <span class="fw-bold" th:text="'#' + ${order.maDonHang}"></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span class="text-muted">Ngày đặt:</span>
+                                    <span th:text="${#temporals.format(order.ngayDat, 'dd-MM-yyyy HH:mm')}"></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span class="text-muted">Trạng thái:</span>
+                                    <span th:if="${order.trangThai == 'Chờ xử lý'}" class="text-warning fw-bold">Chờ xử lý</span>
+                                    <span th:if="${order.trangThai == 'Đang giao hàng'}" class="text-primary fw-bold">Đang giao hàng</span>
+                                    <span th:if="${order.trangThai == 'Hoàn thành'}" class="text-success fw-bold">Hoàn thành</span>
+                                    <span th:if="${order.trangThai == 'Đã hủy'}" class="text-danger fw-bold">Đã hủy</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span class="text-muted">Thanh toán:</span>
+                                    <span class="fw-bold text-dark" th:text="${order.trangThaiThanhToan}"></span>
+                                </li>
+                                <li class="list-group-item px-0">
+                                    <span class="text-muted d-block mb-1">Địa chỉ nhận hàng:</span>
+                                    <span class="fw-bold text-dark" th:text="${order.diaChiGiaoHang}"></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="fw-bold m-0 text-main">Chi tiết đồ chơi</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-4">Đồ chơi</th>
+                                            <th class="text-center">Size</th>
+                                            <th class="text-center">SL</th>
+                                            <th class="text-end">Đơn giá</th>
+                                            <th class="text-end pe-4">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="d : ${details}">
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <img th:src="${@assetUrlService.product(d.bienThe.moHinh.hinhAnh)}" 
+                                                         onerror="this.src='https://via.placeholder.com/50'"
+                                                         class="rounded border me-3" 
+                                                         style="width: 50px; height: 50px; object-fit: cover;">
+                                                    <div>
+                                                        <h6 class="mb-0 small fw-bold" th:text="${d.bienThe.moHinh.tenMoHinh}"></h6>
+                                                        <small class="text-muted" th:text="'Mã: ' + ${d.bienThe.moHinh.maMoHinh}"></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center small text-muted" th:text="${d.bienThe.kichThuoc}"></td>
+                                            <td class="text-center fw-bold" th:text="${d.soLuong}"></td>
+                                            <td class="text-end text-muted" 
+                                                th:text="${#numbers.formatDecimal(d.donGia, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                            </td>
+                                            <td class="text-end fw-bold text-main pe-4" 
+                                                th:text="${#numbers.formatDecimal(d.donGia * d.soLuong, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot class="bg-light">
+                                        <tr>
+                                            <td colspan="4" class="text-end text-muted small pt-3">Tổng tiền hàng:</td>
+                                            <td class="text-end pt-3 pe-4 fw-bold" 
+                                                th:text="${#numbers.formatDecimal(order.tongTienHang, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4" class="text-end text-muted small border-0">Phí vận chuyển:</td>
+                                            <td class="text-end border-0 pe-4" 
+                                                th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${order.tienGiamGia > 0}">
+                                            <td colspan="4" class="text-end text-muted small border-0">Giảm giá:</td>
+                                            <td class="text-end border-0 pe-4 text-success" 
+                                                th:text="'- ' + ${#numbers.formatDecimal(order.tienGiamGia, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4" class="text-end fw-bold py-3 fs-5">TỔNG THANH TOÁN:</td>
+                                            <td class="text-end fw-bold text-danger py-3 fs-5 pe-4" 
+                                                th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

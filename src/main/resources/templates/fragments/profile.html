@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/_layout :: dynamic(~{::main})}">
+<body>
+    <main>
+        <div class="container py-5">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="card border-0 shadow-sm text-center p-4">
+                        <div class="mb-3 position-relative d-inline-block">
+                            <img th:src="${@assetUrlService.avatar(user.avatar)}" 
+                                 onerror="this.src='https://via.placeholder.com/150'"
+                                 class="rounded-circle border border-3 border-light shadow" 
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                            <span class="position-absolute bottom-0 end-0 bg-main text-white rounded-circle p-2 shadow" 
+                                  style="cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-camera small"></i>
+                            </span>
+                        </div>
+                        <h5 class="fw-bold mb-1" th:text="${user.hoTen}">Tên Người Dùng</h5>
+                        <p class="text-muted small mb-3" th:text="${user.email}">email@example.com</p>
+                        
+                        <div class="list-group list-group-flush text-start mt-3">
+						    <a href="/account/profile" class="list-group-item list-group-item-action active bg-main border-0">
+						        <i class="fas fa-user-circle me-2"></i> Hồ sơ cá nhân
+						    </a>
+						    
+						    <a href="/order/list" class="list-group-item list-group-item-action border-0">
+						        <i class="fas fa-shopping-bag me-2"></i> Đơn mua
+						    </a>
+						
+						    <a href="/auth/logoff" class="list-group-item list-group-item-action border-0 text-danger">
+						        <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+						    </a>
+						</div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white p-3 border-bottom">
+                            <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+                                <li class="nav-item">
+                                    <button class="nav-link active fw-bold text-dark" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button">
+                                        Cập nhật thông tin
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link fw-bold text-dark" id="pass-tab" data-bs-toggle="tab" data-bs-target="#pass" type="button">
+                                        Đổi mật khẩu
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card-body p-4">
+                            <div class="tab-content" id="myTabContent">
+                                
+                                <div class="tab-pane fade show active" id="info">
+                                    <div th:if="${message != null}" 
+                                         th:class="'alert text-center ' + ${alertClass != null ? alertClass : 'alert-warning'}">
+                                        <i class="fas fa-info-circle me-2"></i> <span th:text="${message}"></span>
+                                    </div>
+
+                                    <form action="/account/update-profile" method="post" th:object="${user}">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold small">Tên đăng nhập</label>
+                                                <input type="text" class="form-control" th:field="*{tenDangNhap}" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold small">Họ và tên</label>
+                                                <input type="text" class="form-control" th:field="*{hoTen}" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold small">Địa chỉ email</label>
+                                                <input type="email" class="form-control" th:field="*{email}" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold small">Số điện thoại</label>
+                                                <input type="text" class="form-control" th:field="*{soDienThoai}" placeholder="Chưa cập nhật">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold small">Địa chỉ</label>
+                                                <textarea class="form-control" th:field="*{diaChi}" rows="2" placeholder="Nhập địa chỉ nhận hàng..."></textarea>
+                                            </div>
+                                            <div class="col-12 text-end mt-3">
+                                                <button class="btn btn-main px-4 text-white">Lưu Thay Đổi</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="tab-pane fade" id="pass">
+                                    <div th:if="${messPass != null}" 
+                                         th:class="'alert text-center ' + ${alertPassClass != null ? alertPassClass : 'alert-danger'}">
+                                        <i class="fas fa-key me-2"></i> <span th:text="${messPass}"></span>
+                                    </div>
+
+                                    <form action="/account/change-password" method="post">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small">Mật khẩu hiện tại</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="fas fa-lock text-muted"></i></span>
+                                                <input type="password" class="form-control" name="currentPass" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small">Mật khẩu mới</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="fas fa-key text-muted"></i></span>
+                                                <input type="password" class="form-control" name="newPass" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold small">Xác nhận mật khẩu mới</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="fas fa-check-circle text-muted"></i></span>
+                                                <input type="password" class="form-control" name="confirmPass" required>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-danger px-4">Đổi Mật Khẩu</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                var hasPassError = "[[${messPass}]]"; 
+                if(hasPassError) {
+                    var triggerEl = document.querySelector('#pass-tab');
+                    var tab = new bootstrap.Tab(triggerEl);
+                    tab.show();
+                }
+            });
+        </script>
+    </main>
+</body>
+</html>

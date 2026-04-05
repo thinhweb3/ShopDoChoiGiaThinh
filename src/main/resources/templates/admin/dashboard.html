@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+    <div class="container-fluid p-4">
+        <h3 class="fw-bold text-dark mb-4">Bảng điều khiển vận hành</h3>
+
+        <div th:if="${dashboardWarning != null}" class="alert alert-warning border-0 shadow-sm mb-4">
+            <i class="fas fa-triangle-exclamation me-2"></i>
+            <span th:text="${dashboardWarning}">Cảnh báo tải dữ liệu</span>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary-subtle border-0 h-100">
+                    <div class="card-body">
+                        <p class="text-muted mb-1">Tổng đồ chơi</p>
+                        <h3 class="fw-bold text-primary mb-0" th:text="${totalProducts}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning-subtle border-0 h-100">
+                    <div class="card-body">
+                        <p class="text-muted mb-1">Đồ chơi sắp hết</p>
+                        <h3 class="fw-bold text-warning mb-0" th:text="${lowStockProducts}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success-subtle border-0 h-100">
+                    <div class="card-body">
+                        <p class="text-muted mb-1">Tổng đơn hàng</p>
+                        <h3 class="fw-bold text-success mb-0" th:text="${totalOrders}">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger-subtle border-0 h-100">
+                    <div class="card-body">
+                        <p class="text-muted mb-1">Đơn đã hủy</p>
+                        <h3 class="fw-bold text-danger mb-0" th:text="${cancelledOrders}">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <div class="small text-muted mb-2">Doanh thu 30 ngày</div>
+                        <div class="fw-bold fs-3 text-primary"
+                             th:text="${#numbers.formatDecimal(tongQuan.tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                        <div class="mt-2 small" th:classappend="${tongQuan.tyLeTangTruong != null and tongQuan.tyLeTangTruong >= 0 ? 'text-success' : 'text-danger'}">
+                            Biến động:
+                            <span th:text="${#numbers.formatDecimal(tongQuan.tyLeTangTruong != null ? tongQuan.tyLeTangTruong : 0, 1, 1)} + '%'">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="fw-bold mb-0">Đơn hàng theo tháng</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="revenueChart" height="220"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">Đơn hàng gần đây</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-3">Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thanh toán</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="order : ${recentOrderItems}">
+                                <td class="ps-3 fw-bold text-primary" th:text="'#' + ${order.maDonHang}">#100</td>
+                                <td th:text="${order.customerName}">Khách lẻ</td>
+                                <td class="fw-bold"
+                                    th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border" th:text="${order.orderStatus}">Đặt hàng</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border" th:text="${order.paymentStatus}">Chưa nhận tiền</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(recentOrderItems)}">
+                                <td colspan="5" class="text-center py-4 text-muted">Chưa có đơn hàng</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="chartLabels" th:value="${chartLabels}" />
+    <input type="hidden" id="chartRevenues" th:value="${chartRevenues}" />
+    <input type="hidden" id="chartOrders" th:value="${chartOrders}" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const labelsEl = document.getElementById('chartLabels');
+            const revenuesEl = document.getElementById('chartRevenues');
+            const ordersEl = document.getElementById('chartOrders');
+
+            if (!labelsEl || !revenuesEl || !ordersEl) {
+                return;
+            }
+
+            const labels = JSON.parse(labelsEl.value.replace(/'/g, '"'));
+            const revenues = JSON.parse(revenuesEl.value);
+            const orders = JSON.parse(ordersEl.value);
+
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Doanh thu (đ)',
+                            data: revenues,
+                            backgroundColor: 'rgba(15, 103, 177, 0.8)',
+                            borderColor: '#0f67b1',
+                            borderRadius: 8,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Số đơn',
+                            data: orders,
+                            type: 'line',
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.15)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('vi-VN').format(value) + ' đ';
+                                }
+                            }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

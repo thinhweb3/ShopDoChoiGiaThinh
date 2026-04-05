@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark m-0">Quản lý Đơn hàng</h3>
+        </div>
+
+        <!-- Thống kê nhanh -->
+        <div class="row mb-4" id="orderStats">
+            <div class="col-md-2">
+                <div class="card bg-warning-subtle border-0">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold text-warning" id="statDatHang">0</h5>
+                        <p class="card-text small text-muted">Đặt hàng</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card bg-info-subtle border-0">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold text-info" id="statDangGiao">0</h5>
+                        <p class="card-text small text-muted">Đang giao</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card bg-success-subtle border-0">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold text-success" id="statDaGiao">0</h5>
+                        <p class="card-text small text-muted">Đã giao</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card bg-danger-subtle border-0">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold text-danger" id="statDaHuy">0</h5>
+                        <p class="card-text small text-muted">Đã hủy</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card bg-primary-subtle border-0">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold text-primary" id="statTongDon">0</h5>
+                        <p class="card-text small text-muted">Tổng đơn</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${message != null}"
+             th:class="${'alert alert-dismissible fade show ' + (messageType == 'success' ? 'alert-success' : 'alert-danger')}"
+             role="alert">
+            <i class="fas" th:classappend="${messageType == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+            <span th:text="${message}">Thông báo</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+
+        <!-- Tìm kiếm và lọc -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Tìm kiếm</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" name="keyword"
+                                   th:value="${keyword}" placeholder="Mã đơn, tên khách, SĐT, địa chỉ...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="trangThai">
+                            <option value="all" th:selected="${trangThai == null or trangThai == 'all'}">Tất cả</option>
+                            <option value="Đặt hàng" th:selected="${trangThai == 'Đặt hàng'}">Đặt hàng</option>
+                            <option value="Đang giao" th:selected="${trangThai == 'Đang giao'}">Đang giao</option>
+                            <option value="Đã giao" th:selected="${trangThai == 'Đã giao'}">Đã giao</option>
+                            <option value="Đã hủy" th:selected="${trangThai == 'Đã hủy'}">Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Sắp xếp theo</label>
+                        <select class="form-select" name="sortBy">
+                            <option value="ngayDat" th:selected="${sortBy == null or sortBy == 'ngayDat'}">Ngày đặt</option>
+                            <option value="tongTien" th:selected="${sortBy == 'tongTien'}">Tổng tiền</option>
+                            <option value="maDonHang" th:selected="${sortBy == 'maDonHang'}">Mã đơn</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Thứ tự</label>
+                        <select class="form-select" name="sortDir">
+                            <option value="desc" th:selected="${sortDir == null or sortDir == 'desc'}">Giảm dần</option>
+                            <option value="asc" th:selected="${sortDir == 'asc'}">Tăng dần</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter"></i> Lọc
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="ps-4">Mã ĐH</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thanh toán</th>
+                                <th class="text-end pe-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="o : ${orders}">
+                                <td class="ps-4 fw-bold text-primary" th:text="'#' + ${o.maDonHang}">#101</td>
+
+                                <td>
+                                    <div class="fw-bold" th:text="${o.taiKhoan.hoTen}">Tên</div>
+                                    <div class="small text-muted" th:text="${o.taiKhoan.soDienThoai}">SDT</div>
+                                </td>
+
+                                <td th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}">Ngày giờ</td>
+
+                                <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(o.tongTien, 0, 'COMMA', 0, 'POINT') + ' đ'}">Số tiền</td>
+
+                                <td>
+                                    <span th:switch="${o.trangThai}">
+                                        <span th:case="'Chờ xử lý'" class="badge bg-warning text-dark">Đặt hàng</span>
+                                        <span th:case="'Đã xác nhận'" class="badge bg-warning text-dark">Đặt hàng</span>
+                                        <span th:case="'Đặt hàng'" class="badge bg-warning text-dark">Đặt hàng</span>
+                                        <span th:case="'Đang giao'" class="badge bg-info text-white">Đang giao</span>
+                                        <span th:case="'Đang giao hàng'" class="badge bg-info text-white">Đang giao</span>
+                                        <span th:case="'Hoàn thành'" class="badge bg-success">Đã giao</span>
+                                        <span th:case="'Đã giao'" class="badge bg-success">Đã giao</span>
+                                        <span th:case="'Đã hủy'" class="badge bg-danger">Đã hủy</span>
+                                        <span th:case="*" class="badge bg-secondary" th:text="${o.trangThai}"></span>
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span th:if="${o.trangThaiThanhToan == 'Đã thanh toán'}" class="badge bg-success-subtle text-success border border-success-subtle">
+                                        <i class="fas fa-check me-1"></i> Đã nhận tiền
+                                    </span>
+                                    <span th:unless="${o.trangThaiThanhToan == 'Đã thanh toán'}" class="badge bg-warning-subtle text-warning border border-warning-subtle">
+                                        <i class="fas fa-clock me-1"></i> Chưa nhận tiền
+                                    </span>
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-primary me-1"
+                                            th:data-id="${o.maDonHang}"
+                                            onclick="openOrderModal(this.getAttribute('data-id'))"
+                                            title="Xem & Xử lý">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    <a th:if="${session.user != null and session.user.hasPermission('ORDER_DELETE')}"
+                                       th:href="@{|/admin/orders/delete/${o.maDonHang}|}"
+                                       class="btn btn-sm btn-light border text-danger"
+                                       onclick="return confirm('Bạn có chắc chắn muốn xóa đơn hàng này?');">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div th:if="${#lists.isEmpty(orders)}" class="text-center py-5">
+                    <p class="text-muted">Không tìm thấy đơn hàng nào.</p>
+                </div>
+
+                <!-- Phân trang -->
+                <nav th:if="${totalPages > 1}" aria-label="Điều hướng phân trang" class="px-3 py-2 border-top">
+                    <ul class="pagination justify-content-end mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/orders(page=0, keyword=${keyword}, trangThai=${trangThai}, sortBy=${sortBy}, sortDir=${sortDir})}">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/orders(page=${currentPage - 1}, keyword=${keyword}, trangThai=${trangThai}, sortBy=${sortBy}, sortDir=${sortDir})}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${currentPage == i ? 'active' : ''}">
+                            <a class="page-link" th:text="${i + 1}"
+                               th:href="@{/admin/orders(page=${i}, keyword=${keyword}, trangThai=${trangThai}, sortBy=${sortBy}, sortDir=${sortDir})}"></a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/orders(page=${currentPage + 1}, keyword=${keyword}, trangThai=${trangThai}, sortBy=${sortBy}, sortDir=${sortDir})}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/orders(page=${totalPages - 1}, keyword=${keyword}, trangThai=${trangThai}, sortBy=${sortBy}, sortDir=${sortDir})}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form action="/admin/orders/update" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Chi tiết đơn hàng #<span id="modalOrderIdText"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="modalOrderId" name="maDonHang">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Người nhận:</strong> <span id="modalUser"></span></p>
+                                <p class="mb-1"><strong>SĐT:</strong> <span id="modalPhone"></span></p>
+                                <p class="mb-1"><strong>Ngày đặt:</strong> <span id="modalDate"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Địa chỉ:</strong> <span id="modalAddress"></span></p>
+                                <p class="mb-1"><strong>Thanh toán:</strong> <span id="modalPayment"></span></p>
+                                <p class="mb-1 text-danger fw-bold fs-5">Tổng tiền: <span id="modalTotal"></span></p>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mb-4 border rounded">
+                            <table class="table table-sm mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-3">Đồ chơi</th>
+                                        <th>Phiên bản</th>
+                                        <th class="text-center">SL</th>
+                                        <th class="text-end pe-3">Đơn giá</th>
+                                        <th class="text-end pe-3">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modalProductList">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <hr>
+
+                        <h6 class="fw-bold text-primary mb-3">Cập nhật trạng thái đơn hàng</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Trạng thái đơn hàng</label>
+                                <select class="form-select" id="modalStatus" name="trangThai">
+                                    <option th:if="${session.user != null and session.user.hasPermission('ORDER_CONFIRM')}" value="Đặt hàng">Đặt hàng</option>
+                                    <option th:if="${session.user != null and session.user.hasPermission('ORDER_CONFIRM')}" value="Đang giao">Đang giao</option>
+                                    <option th:if="${session.user != null and session.user.hasPermission('ORDER_CONFIRM')}" value="Đã giao">Đã giao</option>
+                                    <option th:if="${session.user != null and session.user.hasPermission('ORDER_CANCEL')}" value="Đã hủy">Đã hủy</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tiền hàng</label>
+                                <select class="form-select" id="modalPayStatus" name="trangThaiThanhToan">
+                                    <option value="Chưa nhận tiền">Chưa nhận tiền</option>
+                                    <option value="Đã nhận tiền">Đã nhận tiền</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button th:if="${session.user != null and (session.user.hasPermission('ORDER_CONFIRM') or session.user.hasPermission('ORDER_CANCEL'))}"
+                                type="submit" class="btn btn-primary">Cập nhật thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const defaultProductImage = /*[[@{/images/banner-bg.jpg}]]*/ '/images/banner-bg.jpg';
+
+        function resolveImageSrc(path) {
+            if (!path) {
+                return defaultProductImage;
+            }
+            const normalized = String(path).trim();
+            if (!normalized) {
+                return defaultProductImage;
+            }
+            if (normalized.startsWith('http://')
+                || normalized.startsWith('https://')
+                || normalized.startsWith('//')
+                || normalized.startsWith('data:')) {
+                return normalized;
+            }
+            if (normalized.startsWith('/')) {
+                return normalized;
+            }
+            return '/images/' + encodeURIComponent(normalized).replace(/%2F/g, '/');
+        }
+
+        // Load statistics on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrderStats();
+        });
+
+        function loadOrderStats() {
+            fetch('/admin/orders/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('statDatHang').textContent = data.datHang || 0;
+                    document.getElementById('statDangGiao').textContent = data.dangGiao || 0;
+                    document.getElementById('statDaGiao').textContent = data.daGiao || 0;
+                    document.getElementById('statDaHuy').textContent = data.daHuy || 0;
+                    document.getElementById('statTongDon').textContent = data.tongDon || 0;
+                })
+                .catch(err => console.log('Lỗi load thống kê:', err));
+        }
+
+        function openOrderModal(id) {
+            var myModal = new bootstrap.Modal(document.getElementById('orderModal'));
+
+            document.getElementById('modalProductList').innerHTML = '<tr><td colspan="5" class="text-center">Đang tải...</td></tr>';
+
+            fetch('/admin/orders/api/' + id)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('modalOrderIdText').innerText = data.maDonHang;
+                    document.getElementById('modalOrderId').value = data.maDonHang;
+                    document.getElementById('modalUser').innerText = data.tenNguoiNhan;
+                    document.getElementById('modalPhone').innerText = data.sdt;
+                    document.getElementById('modalAddress').innerText = data.diaChi;
+                    document.getElementById('modalDate').innerText = new Date(data.ngayDat).toLocaleString('vi-VN');
+                    document.getElementById('modalPayment').innerText = data.trangThaiThanhToan;
+                    document.getElementById('modalTotal').innerText = new Intl.NumberFormat('vi-VN').format(data.tongTien) + ' đ';
+
+                    document.getElementById('modalStatus').value = data.trangThai;
+                    document.getElementById('modalPayStatus').value = data.trangThaiThanhToan;
+
+                    let html = '';
+                    data.products.forEach(p => {
+                        html += `
+                            <tr>
+                                <td class="ps-3 align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <img src="${resolveImageSrc(p.hinhAnh)}" class="rounded border me-2" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.src=defaultProductImage">
+                                        <span>${p.tenSp}</span>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-muted small">${p.phanLoai}</td>
+                                <td class="align-middle text-center fw-bold">${p.soLuong}</td>
+                                <td class="align-middle text-end pe-3">${new Intl.NumberFormat('vi-VN').format(p.donGia)} đ</td>
+                                <td class="align-middle text-end pe-3 fw-bold">${new Intl.NumberFormat('vi-VN').format(p.thanhTien)} đ</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('modalProductList').innerHTML = html;
+
+                    myModal.show();
+                })
+                .catch(err => {
+                    alert('Lỗi tải dữ liệu đơn hàng!');
+                    console.error(err);
+                });
+        }
+    </script>
+
+</body>
+</html>

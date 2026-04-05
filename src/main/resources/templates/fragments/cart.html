@@ -1,0 +1,46 @@
+<div xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/_layout :: dynamic(~{::main})}">
+    <main>
+        <h3 class="fw-bold text-uppercase text-center mb-4">Giỏ hàng của bạn</h3>
+        
+        <div class="row" th:if="${cart != null and cart.size() > 0}">
+            <div class="col-lg-8">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr><th>Đồ chơi</th><th>Giá</th><th>SL</th><th>Tổng</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${cart}">
+                            <td>
+                                <img th:src="${@assetUrlService.product(item.bienThe.moHinh.hinhAnh)}" width="50" class="me-2">
+                                <span th:text="${item.bienThe.moHinh.tenMoHinh} + ' (' + ${item.bienThe.sku} + ')'" class="fw-bold"></span>
+                            </td>
+                            <td th:text="${#numbers.formatDecimal(item.bienThe.giaBan, 0, 'COMMA', 0, 'POINT')}"></td>
+                            <td>
+                                <form th:action="@{|/cart/update/${item.maGioHang}|}">
+                                    <input type="number" name="qty" th:value="${item.soLuong}" onchange="this.form.submit()" style="width: 60px" min="1">
+                                </form>
+                            </td>
+                            <td class="fw-bold text-danger" th:text="${#numbers.formatDecimal(item.bienThe.giaBan * item.soLuong, 0, 'COMMA', 0, 'POINT')}"></td>
+                            <td><a th:href="@{|/cart/remove/${item.maGioHang}|}" class="text-danger"><i class="fas fa-trash"></i></a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-lg-4">
+                <div class="card p-3 bg-light border-0">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="fw-bold">Tổng tiền:</span>
+                        <span class="fw-bold text-danger fs-4" th:text="${#numbers.formatDecimal(amount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                    </div>
+                    <a href="/order/checkout" class="btn btn-success w-100 py-2 fw-bold">THANH TOÁN</a>
+                    <a href="/cart/clear" class="btn btn-outline-secondary w-100 mt-2 btn-sm">Xóa giỏ hàng</a>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${cart == null or cart.size() == 0}" class="text-center py-5">
+            <h4 class="text-muted">Giỏ hàng trống trơn!</h4>
+            <a href="/home/index" class="btn btn-success mt-3">Đi mua sắm</a>
+        </div>
+    </main>
+</div>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark m-0">Quản lý loại đồ chơi</h3>
+                <small class="text-muted">Danh sách loại dùng cho trường nhóm hàng trên từng món đồ chơi</small>
+            </div>
+            <button th:if="${session.user != null and session.user.hasPermission('PRODUCT_CREATE')}"
+                    class="btn btn-primary" onclick="openTypeModal(null)">
+                <i class="fas fa-plus me-2"></i>Thêm loại
+            </button>
+        </div>
+
+        <div th:if="${message != null}"
+             th:class="${'alert alert-dismissible fade show ' + (messageType == 'success' ? 'alert-success' : 'alert-danger')}"
+             role="alert">
+            <i class="fas" th:classappend="${messageType == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+            <span th:text="${message}">Thông báo</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Tên loại</th>
+                                <th>Mô tả</th>
+                                <th>Đang dùng</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end pe-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="type : ${types}">
+                                <td class="ps-4 fw-bold text-muted" th:text="${type.maLoaiHang}">1</td>
+                                <td class="fw-bold text-primary" th:text="${type.tenLoaiHang}">Mô hình lắp ráp</td>
+                                <td class="text-muted small" th:text="${type.moTa != null and !#strings.isEmpty(type.moTa) ? type.moTa : 'Chưa có mô tả'}">Chưa có mô tả</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border"
+                                          th:text="${typeUsage[type.tenLoaiHang] != null ? typeUsage[type.tenLoaiHang] : 0} + ' đồ chơi'">0 đồ chơi</span>
+                                </td>
+                                <td>
+                                    <span th:if="${type.trangThai}" class="badge bg-success-subtle text-success">Đang dùng</span>
+                                    <span th:unless="${type.trangThai}" class="badge bg-secondary-subtle text-secondary">Tạm ẩn</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button th:if="${session.user != null and session.user.hasPermission('PRODUCT_UPDATE')}"
+                                            class="btn btn-sm btn-light border me-1"
+                                            th:onclick="'openTypeModal(' + ${type.maLoaiHang} + ')'"
+                                            title="Sửa">
+                                        <i class="fas fa-pen text-primary"></i>
+                                    </button>
+                                    <a th:if="${session.user != null and session.user.hasPermission('PRODUCT_DELETE')}"
+                                       th:href="@{|/admin/types/delete/${type.maLoaiHang}|}"
+                                       class="btn btn-sm btn-light border text-danger"
+                                       onclick="return confirm('Xóa loại này? Nếu loại đang được gán cho đồ chơi thì hệ thống sẽ chặn.');">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div th:if="${#lists.isEmpty(types)}" class="text-center py-5">
+                    <p class="text-muted mb-0">Chưa có loại đồ chơi nào.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="typeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="typeForm" action="/admin/types/save" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="typeModalTitle">Thêm loại</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="maLoaiHang" name="maLoaiHang">
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên loại <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="tenLoaiHang" name="tenLoaiHang" required maxlength="150">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="moTa" name="moTa" rows="3" maxlength="500"></textarea>
+                        </div>
+
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="trangThai" name="trangThai" checked>
+                            <label class="form-check-label" for="trangThai">Hiển thị trong form đồ chơi</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button th:if="${session.user != null and (session.user.hasPermission('PRODUCT_CREATE') or session.user.hasPermission('PRODUCT_UPDATE'))}"
+                                type="submit" class="btn btn-primary">Lưu loại</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTypeModal(id) {
+            const myModal = new bootstrap.Modal(document.getElementById('typeModal'));
+            const typeForm = document.getElementById('typeForm');
+
+            if (id) {
+                document.getElementById('typeModalTitle').innerText = 'Cập nhật loại';
+
+                fetch('/admin/types/api/' + id)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('maLoaiHang').value = data.maLoaiHang;
+                        document.getElementById('tenLoaiHang').value = data.tenLoaiHang ?? '';
+                        document.getElementById('moTa').value = data.moTa ?? '';
+                        document.getElementById('trangThai').checked = !!data.trangThai;
+                        myModal.show();
+                    })
+                    .catch(() => alert('Lỗi tải dữ liệu loại!'));
+            } else {
+                document.getElementById('typeModalTitle').innerText = 'Thêm loại';
+                typeForm.reset();
+                document.getElementById('maLoaiHang').value = '';
+                document.getElementById('trangThai').checked = true;
+                myModal.show();
+            }
+        }
+    </script>
+
+</body>
+</html>

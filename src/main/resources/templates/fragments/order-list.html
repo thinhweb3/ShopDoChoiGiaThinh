@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/_layout :: dynamic(~{::main})}">
+<body>
+    <main>
+        <div class="container py-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold text-uppercase text-main border-start border-5 border-success ps-3">
+                    Lịch sử mua hàng
+                </h3>
+                <a href="/product/list" class="btn btn-outline-success rounded-pill">
+                    <i class="fas fa-cart-plus me-1"></i> Mua thêm
+                </a>
+            </div>
+
+            <div th:if="${orders == null or #lists.isEmpty(orders)}" class="text-center py-5 bg-light rounded shadow-sm">
+                <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" width="100" class="mb-3 opacity-50">
+                <p class="text-muted fs-5">Bạn chưa có đơn hàng nào!</p>
+                <a href="/home/index" class="btn btn-main text-white mt-2">Dạo phố mua sắm ngay</a>
+            </div>
+
+            <div th:unless="${orders == null or #lists.isEmpty(orders)}" class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-secondary">
+                                <tr>
+                                    <th class="py-3 ps-4">Mã ĐH</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Địa chỉ nhận</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="o : ${orders}">
+                                    <td class="ps-4 fw-bold text-main" th:text="'#' + ${o.maDonHang}"></td>
+                                    
+                                    <td>
+                                        <i class="far fa-calendar-alt text-muted me-1"></i>
+                                        <span th:text="${#temporals.format(o.ngayDat, 'dd-MM-yyyy HH:mm')}"></span>
+                                    </td>
+                                    
+                                    <td style="max-width: 250px;">
+                                        <div class="text-truncate" th:text="${o.diaChiGiaoHang}"></div>
+                                    </td>
+                                    
+                                    <td class="fw-bold text-danger">
+                                        <span th:text="${#numbers.formatDecimal(o.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                    </td>
+                                    
+                                    <td>
+                                        <span th:if="${o.trangThai == 'Chờ xử lý'}" class="badge bg-warning text-dark">Chờ xử lý</span>
+                                        <span th:if="${o.trangThai == 'Đang giao hàng'}" class="badge bg-primary">Đang giao</span>
+                                        <span th:if="${o.trangThai == 'Hoàn thành'}" class="badge bg-success">Hoàn thành</span>
+                                        <span th:if="${o.trangThai == 'Đã hủy'}" class="badge bg-danger">Đã hủy</span>
+                                        
+                                        <span th:unless="${o.trangThai == 'Chờ xử lý' or o.trangThai == 'Đang giao hàng' or o.trangThai == 'Hoàn thành' or o.trangThai == 'Đã hủy'}" 
+                                              class="badge bg-secondary" th:text="${o.trangThai}"></span>
+                                    </td>
+                                    
+                                    <td class="text-end pe-4">
+                                        <a th:href="@{|/order/detail/${o.maDonHang}|}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            Xem chi tiết <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

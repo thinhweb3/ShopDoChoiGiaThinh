@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="dynamic(view)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gia Thịnh Shop | Thế giới đồ chơi</title>
+    <meta name="description" content="Gia Thịnh Shop trưng bày đồ chơi, báo giá nhanh và nhận đơn thủ công qua điện thoại hoặc Zalo.">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+    <div class="top-bar py-2">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="small text-muted">
+                <i class="fas fa-location-dot text-main me-1"></i> Hồ Chí Minh, Việt Nam
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3 small">
+                <a class="text-dark text-decoration-none fw-semibold" th:href="'tel:' + ${storeContactPhoneDigits}">
+                    <i class="fas fa-phone text-main me-1"></i>
+                    <span th:text="${storeContactPhone}">0900000000</span>
+                </a>
+                <a class="text-dark text-decoration-none fw-semibold" th:href="${storeContactZaloLink}" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-comment-dots text-main me-1"></i>
+                    Zalo <span th:text="${storeContactZalo}">0900000000</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-header sticky-top shadow-sm">
+        <div class="container py-3">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-4 col-md-5">
+                    <a href="/home/index" class="text-decoration-none d-flex align-items-center gap-3">
+                        <div class="text-main display-6"><i class="fas fa-store"></i></div>
+                        <div>
+                            <h3 class="fw-bold text-dark m-0">Gia Thịnh Shop</h3>
+                            <small class="text-muted">Thế giới đồ chơi và nhận đơn qua Zalo/điện thoại</small>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-lg-5 col-md-7">
+                    <form action="/product/search" class="search-box d-flex">
+                        <input class="form-control" type="text" name="keyword" placeholder="Tìm theo tên hàng hoặc mã hàng">
+                        <button type="submit" class="px-3"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+
+                <div class="col-lg-3 text-lg-end">
+                    <div class="d-flex justify-content-lg-end gap-2">
+                        <div class="dropdown">
+                            <button class="category-btn dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-bars me-1"></i> Loại hàng
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/product/list">Tất cả đồ chơi</a></li>
+                                <li th:each="c : ${cates}">
+                                    <a class="dropdown-item" th:href="@{|/product/list-by-category/${c.maDanhMuc}|}" th:text="${c.tenDanhMuc}"></a>
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="/product/list" class="btn btn-outline-dark rounded-pill px-3">
+                            <i class="fas fa-box-open me-1"></i> Xem đồ chơi
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4 mb-5" style="min-height: 600px;">
+        <div th:replace="${view}"></div>
+    </div>
+
+    <footer class="site-footer text-white pt-5 pb-3">
+       <div class="container">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <h5 class="text-main mb-3">Về Gia Thịnh Shop</h5>
+                    <p class="small text-white-50 mb-0">
+                        Website hiện tập trung trưng bày đồ chơi, báo giá nhanh và nhận đơn thủ công.
+                        Khi khách chọn hàng, hệ thống ưu tiên liên hệ trực tiếp qua điện thoại hoặc Zalo để chốt đơn.
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-uppercase text-main mb-3">Liên hệ đặt hàng</h6>
+                    <p class="mb-2 small">
+                        <i class="fas fa-phone me-2"></i>
+                        <a class="text-white text-decoration-none" th:href="'tel:' + ${storeContactPhoneDigits}" th:text="${storeContactPhone}">0900000000</a>
+                    </p>
+                    <p class="mb-0 small">
+                        <i class="fas fa-comment-dots me-2"></i>
+                        <a class="text-white text-decoration-none" th:href="${storeContactZaloLink}" target="_blank" rel="noopener noreferrer">
+                            Zalo <span th:text="${storeContactZalo}">0900000000</span>
+                        </a>
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-uppercase text-main mb-3">Quản trị</h6>
+                    <p class="small text-white-50 mb-0">
+                        Đăng nhập quản trị qua đường dẫn nội bộ để cập nhật đồ chơi và xử lý đơn hàng.
+                    </p>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <div class="text-center small text-secondary">
+                &copy; 2026 Gia Thịnh Shop.
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal fade" id="orderContactModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title fw-bold">Liên hệ đặt hàng</h5>
+                        <small class="text-muted">Chốt đơn nhanh qua điện thoại hoặc Zalo</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="rounded-4 bg-light p-3 mb-3">
+                        <div class="small text-muted mb-1">Đồ chơi đang chọn</div>
+                        <div class="fw-bold" id="orderPopupName">Đồ chơi</div>
+                        <div class="small text-muted" id="orderPopupMeta">Mã hàng</div>
+                    </div>
+
+                    <div class="d-grid gap-2 mb-3">
+                        <a class="btn btn-dark rounded-pill" id="orderPopupCallButton" href="#">
+                            <i class="fas fa-phone me-2"></i>Gọi ngay
+                        </a>
+                        <a class="btn btn-success rounded-pill" id="orderPopupZaloButton" href="#" target="_blank" rel="noopener noreferrer">
+                            <i class="fas fa-comment-dots me-2"></i>Nhắn Zalo
+                        </a>
+                    </div>
+
+                    <label class="form-label fw-semibold">Tin nhắn gợi ý để gửi shop</label>
+                    <textarea class="form-control" id="orderPopupMessage" rows="4" readonly></textarea>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mt-2" onclick="copyOrderMessage()">
+                        <i class="fas fa-copy me-1"></i>Sao chép nội dung
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const storeContactPhone = /*[[${storeContactPhone}]]*/ '0900000000';
+        const storeContactPhoneDigits = /*[[${storeContactPhoneDigits}]]*/ '0900000000';
+        const storeContactZalo = /*[[${storeContactZalo}]]*/ '0900000000';
+        const storeContactZaloLink = /*[[${storeContactZaloLink}]]*/ '#';
+
+        function openOrderPopupFromElement(element) {
+            const productName = element.getAttribute('data-product-name') || 'Đồ chơi';
+            const productCode = element.getAttribute('data-product-code') || 'N/A';
+            const productPrice = element.getAttribute('data-product-price') || 'Liên hệ';
+            const productStock = element.getAttribute('data-product-stock') || 'Đang cập nhật';
+
+            document.getElementById('orderPopupName').textContent = productName;
+            document.getElementById('orderPopupMeta').textContent =
+                `Mã hàng: ${productCode} | Giá bán: ${productPrice} | Tồn kho: ${productStock}`;
+
+            const message =
+                `Chào shop, mình muốn hỏi mua đồ chơi ${productName} (${productCode}). ` +
+                `Giá tham khảo: ${productPrice}. Tồn kho: ${productStock}.`;
+            document.getElementById('orderPopupMessage').value = message;
+            document.getElementById('orderPopupCallButton').href = `tel:${storeContactPhoneDigits}`;
+            document.getElementById('orderPopupZaloButton').href = storeContactZaloLink;
+
+            const modal = new bootstrap.Modal(document.getElementById('orderContactModal'));
+            modal.show();
+        }
+
+        function copyOrderMessage() {
+            const input = document.getElementById('orderPopupMessage');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(input.value);
+        }
+    </script>
+</body>
+</html>

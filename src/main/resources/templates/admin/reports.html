@@ -1,0 +1,254 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+<div class="container-fluid p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1">Báo cáo bán hàng</h3>
+            <p class="text-muted mb-0">Dữ liệu được tổng hợp từ đơn hàng, chi tiết đơn, đồ chơi, danh mục và tài khoản khách hàng.</p>
+        </div>
+        <form class="row g-2" th:action="@{/admin/reports}" method="get">
+            <div class="col-auto">
+                <label for="startDate" class="form-label mb-1 small">Từ ngày</label>
+                <input id="startDate" class="form-control" type="date" name="startDate" th:value="${startDate}">
+            </div>
+            <div class="col-auto">
+                <label for="endDate" class="form-label mb-1 small">Đến ngày</label>
+                <input id="endDate" class="form-control" type="date" name="endDate" th:value="${endDate}">
+            </div>
+            <div class="col-auto align-self-end">
+                <button class="btn btn-primary" type="submit">Lọc báo cáo</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Tổng doanh thu</div>
+                    <div class="fs-4 fw-bold text-primary"
+                         th:text="${#numbers.formatDecimal(tongQuan.tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                    <div class="small" th:classappend="${tongQuan.tyLeTangTruong >= 0 ? 'text-success' : 'text-danger'}"
+                         th:text="${tongQuan.tyLeTangTruong} + '%'">0%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Tổng đơn hàng</div>
+                    <div class="fs-4 fw-bold" th:text="${tongQuan.tongDonHang}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Số lượng đã bán</div>
+                    <div class="fs-4 fw-bold" th:text="${tongQuan.tongSanPhamBan}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Khách mua hàng</div>
+                    <div class="fs-4 fw-bold" th:text="${tongQuan.tongKhachHang}">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Doanh thu theo tháng ([[${currentYear}]])</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="revenueChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Doanh thu theo danh mục</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Danh mục</th>
+                                <th class="text-end">SL</th>
+                                <th class="text-end">Doanh thu</th>
+                                <th class="text-end">Giá TB</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${thongKeDanhMuc}">
+                                <td th:text="${item.tenDanhMuc}">Danh mục</td>
+                                <td class="text-end" th:text="${item.tongSoLuong}">0</td>
+                                <td class="text-end fw-semibold"
+                                    th:text="${#numbers.formatDecimal(item.tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(item.giaTrungBinh, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(thongKeDanhMuc)}">
+                                <td colspan="4" class="text-center text-muted py-3">Không có dữ liệu</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Top khách hàng VIP</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Khách hàng</th>
+                                <th class="text-end">Đơn</th>
+                                <th class="text-end">Chi tiêu</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="kh : ${khachHangVIP}">
+                                <td th:text="${kh.maTaiKhoan}">1</td>
+                                <td>
+                                    <div class="fw-semibold" th:text="${kh.hoTen}">Tên</div>
+                                    <div class="small text-muted" th:text="${kh.email}">email</div>
+                                </td>
+                                <td class="text-end" th:text="${kh.tongDonHang}">0</td>
+                                <td class="text-end fw-semibold"
+                                    th:text="${#numbers.formatDecimal(kh.tongChiTieu, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(khachHangVIP)}">
+                                <td colspan="4" class="text-center text-muted py-3">Không có dữ liệu</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Top đồ chơi bán chạy</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Mã SP</th>
+                        <th>Tên đồ chơi</th>
+                        <th>Danh mục</th>
+                        <th class="text-end">SL bán</th>
+                        <th class="text-end">Doanh thu</th>
+                        <th class="text-end">Giá TB</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="sp : ${sanPhamBanChay}">
+                        <td th:text="${sp.maMoHinh}">1</td>
+                        <td class="fw-semibold" th:text="${sp.tenMoHinh}">Tên</td>
+                        <td th:text="${sp.tenDanhMuc}">Danh mục</td>
+                        <td class="text-end" th:text="${sp.tongSoLuong}">0</td>
+                        <td class="text-end fw-semibold"
+                            th:text="${#numbers.formatDecimal(sp.tongDoanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                        <td class="text-end" th:text="${#numbers.formatDecimal(sp.giaTrungBinh, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(sanPhamBanChay)}">
+                        <td colspan="6" class="text-center text-muted py-3">Không có dữ liệu</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const monthlyData = /*[[${doanhThuTheoThang}]]*/ [];
+        const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+        const revenueData = new Array(12).fill(0);
+        const orderData = new Array(12).fill(0);
+
+        monthlyData.forEach(item => {
+            const monthIndex = Number(item[0]) - 1;
+            if (monthIndex >= 0 && monthIndex < 12) {
+                revenueData[monthIndex] = Number(item[1]) || 0;
+                orderData[monthIndex] = Number(item[2]) || 0;
+            }
+        });
+
+        const canvas = document.getElementById('revenueChart');
+        if (!canvas || typeof Chart === 'undefined') {
+            return;
+        }
+
+        new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Doanh thu (đ)',
+                        data: revenueData,
+                        backgroundColor: 'rgba(13, 110, 253, 0.75)',
+                        borderRadius: 6,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Số đơn',
+                        data: orderData,
+                        type: 'line',
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.12)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return new Intl.NumberFormat('vi-VN').format(value) + ' đ';
+                            }
+                        }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

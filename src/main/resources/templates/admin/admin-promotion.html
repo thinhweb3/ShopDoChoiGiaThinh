@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark m-0">Quản lý Khuyến Mãi</h3>
+            <button th:if="${session.user != null and session.user.hasPermission('PROMOTION_CREATE')}"
+                    class="btn btn-primary" onclick="openModal(null)">
+                <i class="fas fa-plus me-2"></i> Tạo mã mới
+            </button>
+        </div>
+
+        <div th:if="${message != null}" th:class="${'alert alert-dismissible fade show ' + (messageType == 'success' ? 'alert-success' : 'alert-danger')}" role="alert">
+            <i class="fas" th:classappend="${messageType == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="ps-4">Mã Code</th>
+                                <th>Tên chương trình</th>
+                                <th>Giảm giá</th>
+                                <th>Điều kiện</th>
+                                <th>Thời gian</th>
+                                <th>SL</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end pe-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${promotions}">
+                                <td class="ps-4 fw-bold text-primary font-monospace" th:text="${p.maCode}">SALE10</td>
+                                <td th:text="${p.tenKhuyenMai}">Siêu sale</td>
+                                <td>
+                                    <span th:if="${p.phanTramGiam != null}" class="badge bg-info text-dark" th:text="${p.phanTramGiam + '%'}"></span>
+                                    <span th:if="${p.soTienGiam != null}" class="badge bg-success" th:text="${#numbers.formatDecimal(p.soTienGiam, 0, 'COMMA', 0, 'POINT') + 'đ'}"></span>
+                                </td>
+                                <td>
+                                    <small class="d-block text-muted">Đơn từ: <span th:text="${#numbers.formatDecimal(p.donToiThieu, 0, 'COMMA', 0, 'POINT')}"></span></small>
+                                </td>
+                                <td>
+                                    <small class="d-block" th:text="${#temporals.format(p.ngayBatDau, 'dd/MM/yyyy HH:mm')}">Bắt đầu</small>
+                                    <small class="d-block text-muted" th:text="${#temporals.format(p.ngayKetThuc, 'dd/MM/yyyy HH:mm')}">Kết thúc</small>
+                                </td>
+                                <td th:text="${p.soLuong}">100</td>
+                                <td>
+                                    <span th:if="${p.trangThai}" class="badge bg-success-subtle text-success">Đang áp dụng</span>
+                                    <span th:unless="${p.trangThai}" class="badge bg-danger-subtle text-danger">Tạm dừng</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button th:if="${session.user != null and session.user.hasPermission('PROMOTION_UPDATE')}"
+                                            class="btn btn-sm btn-light border me-1" 
+									        th:data-id="${p.maCode}"
+									        onclick="openModal(this.getAttribute('data-id'))"
+									        title="Sửa">
+									    <i class="fas fa-pen text-primary"></i>
+									</button>
+                                    <a th:if="${session.user != null and session.user.hasPermission('PROMOTION_DELETE')}"
+                                       th:href="@{|/admin/promotions/delete/${p.maCode}|}" class="btn btn-sm btn-light border text-danger" onclick="return confirm('Xóa mã này?')"><i class="fas fa-trash-alt"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="promoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form action="/admin/promotions/save" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Tạo mã khuyến mãi</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Mã Code (Viết liền, in hoa) <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control text-uppercase" id="maCode" name="maCode" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tên chương trình <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="tenKhuyenMai" name="tenKhuyenMai" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phần trăm giảm (%)</label>
+                                <input type="number" class="form-control" id="phanTramGiam" name="phanTramGiam" min="0" max="100">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Hoặc Số tiền giảm (VNĐ)</label>
+                                <input type="number" class="form-control" id="soTienGiam" name="soTienGiam" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Giảm tối đa (VNĐ - Nếu dùng %)</label>
+                                <input type="number" class="form-control" id="giamToiDa" name="giamToiDa" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Đơn hàng tối thiểu (VNĐ)</label>
+                                <input type="number" class="form-control" id="donToiThieu" name="donToiThieu" min="0" value="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngày bắt đầu</label>
+                                <input type="datetime-local" class="form-control" id="ngayBatDau" name="ngayBatDau" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngày kết thúc</label>
+                                <input type="datetime-local" class="form-control" id="ngayKetThuc" name="ngayKetThuc" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số lượng mã</label>
+                                <input type="number" class="form-control" id="soLuong" name="soLuong" min="1" value="100" required>
+                            </div>
+                            <div class="col-md-6 mb-3 d-flex align-items-end">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="trangThai" name="trangThai" checked>
+                                    <label class="form-check-label" for="trangThai">Kích hoạt ngay</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button th:if="${session.user != null and (session.user.hasPermission('PROMOTION_CREATE') or session.user.hasPermission('PROMOTION_UPDATE'))}"
+                                type="submit" class="btn btn-primary">Lưu mã</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            var myModal = new bootstrap.Modal(document.getElementById('promoModal'));
+            if (id) {
+                document.getElementById('modalTitle').innerText = 'Cập nhật mã khuyến mãi';
+                document.getElementById('maCode').setAttribute('readonly', true);
+                
+                fetch('/admin/promotions/api/' + id).then(res => res.json()).then(data => {
+                    document.getElementById('maCode').value = data.maCode;
+                    document.getElementById('tenKhuyenMai').value = data.tenKhuyenMai;
+                    document.getElementById('phanTramGiam').value = data.phanTramGiam;
+                    document.getElementById('soTienGiam').value = data.soTienGiam;
+                    document.getElementById('giamToiDa').value = data.giamToiDa;
+                    document.getElementById('donToiThieu').value = data.donToiThieu;
+                    document.getElementById('ngayBatDau').value = data.ngayBatDau;
+                    document.getElementById('ngayKetThuc').value = data.ngayKetThuc;
+                    document.getElementById('soLuong').value = data.soLuong;
+                    document.getElementById('trangThai').checked = data.trangThai;
+                    myModal.show();
+                });
+            } else {
+                document.getElementById('modalTitle').innerText = 'Tạo mã khuyến mãi mới';
+                document.getElementById('maCode').removeAttribute('readonly');
+                document.querySelector('form').reset();
+                myModal.show();
+            }
+        }
+    </script>
+</body>
+</html>

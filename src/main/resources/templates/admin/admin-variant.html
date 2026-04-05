@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+
+    <div class="container-fluid p-4">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small">
+                        <li class="breadcrumb-item"><a href="/admin/products" class="text-decoration-none">Đồ chơi</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Biến thể</li>
+                    </ol>
+                </nav>
+                <h3 class="fw-bold text-dark m-0">
+                    <span class="text-muted fw-light">Quản lý biến thể:</span> 
+                    <span class="text-primary" th:text="${product.tenMoHinh}">Tên đồ chơi</span>
+                </h3>
+            </div>
+            
+            <button th:if="${session.user != null and session.user.hasPermission('PRODUCT_VARIANT_MANAGE')}"
+                    class="btn btn-primary" onclick="openModal(null)">
+                <i class="fas fa-plus me-2"></i> Thêm biến thể mới
+            </button>
+        </div>
+
+        <div th:if="${message != null}" 
+             th:class="${'alert alert-dismissible fade show ' + (messageType == 'success' ? 'alert-success' : 'alert-danger')}" 
+             role="alert">
+            <i class="fas" th:classappend="${messageType == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+            <span th:text="${message}">Thông báo</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+
+        <div class="card mb-4 border-0 shadow-sm bg-light">
+            <div class="card-body d-flex align-items-center gap-3">
+                <img th:src="${@assetUrlService.product(product.hinhAnh)}" class="rounded border bg-white" style="width: 60px; height: 60px; object-fit: cover;">
+                <div>
+                    <strong class="d-block text-dark">Mã SP: <span th:text="${product.maMoHinh}">MH001</span></strong>
+                    <small class="text-muted">Hãng: <span th:text="${product.hangSanXuat != null ? product.hangSanXuat.tenHang : '-'}">Bandai</span></small>
+                </div>
+                <div class="ms-auto">
+                    <a href="/admin/products" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách SP
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Kích thước / Phiên bản</th>
+                                <th>SKU (Mã kho)</th>
+                                <th>Giá bán</th>
+                                <th>Tồn kho</th>
+                                <th>Tình trạng</th>
+                                <th class="text-end pe-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="v : ${variants}">
+                                <td class="ps-4 text-muted small" th:text="${v.maBienThe}">1</td>
+                                
+                                <td class="fw-bold text-dark" th:text="${v.kichThuoc}">Size L</td>
+                                
+                                <td>
+                                    <span class="badge bg-light text-dark border font-monospace" th:text="${v.sku}">SKU-123</span>
+                                </td>
+                                
+                                <td class="text-success fw-bold" th:text="${#numbers.formatDecimal(v.giaBan, 0, 'COMMA', 0, 'POINT')} + ' đ'">100.000 đ</td>
+                                
+                                <td>
+                                    <span th:if="${v.soLuongTon > 0}" class="text-dark fw-bold" th:text="${v.soLuongTon}">10</span>
+                                    <span th:if="${v.soLuongTon == 0}" class="badge bg-danger">Hết hàng</span>
+                                </td>
+
+                                <td>
+                                    <span th:class="${v.tinhTrang == 'Mới' or v.tinhTrang == 'New' ? 'badge bg-info-subtle text-info border border-info-subtle' : 'badge bg-warning-subtle text-warning border border-warning-subtle'}"
+                                          th:text="${v.tinhTrang == 'New' or v.tinhTrang == 'Mới' ? 'Hàng mới' : (v.tinhTrang == 'Like New' ? 'Như mới 99%' : (v.tinhTrang == '2nd' ? 'Hàng đã qua sử dụng' : v.tinhTrang))}">Hàng mới</span>
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <button th:if="${session.user != null and session.user.hasPermission('PRODUCT_VARIANT_MANAGE')}"
+                                            class="btn btn-sm btn-light border me-1" 
+                                            th:onclick="'openModal(' + ${v.maBienThe} + ')'" title="Sửa">
+                                        <i class="fas fa-pen text-primary"></i>
+                                    </button>
+                                    
+                                    <a th:if="${session.user != null and session.user.hasPermission('PRODUCT_VARIANT_MANAGE')}"
+                                       th:href="@{|/admin/variants/delete/${v.maBienThe}|}" 
+                                       class="btn btn-sm btn-light border text-danger"
+                                       onclick="return confirm('Xóa biến thể này?');">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div th:if="${#lists.isEmpty(variants)}" class="text-center py-5">
+                    <p class="text-muted">Đồ chơi này chưa có biến thể nào.</p>
+                    <button th:if="${session.user != null and session.user.hasPermission('PRODUCT_VARIANT_MANAGE')}"
+                            class="btn btn-sm btn-primary" onclick="openModal(null)">Thêm ngay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="variantModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/admin/variants/save" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Thêm biến thể</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="maBienThe" name="maBienThe">
+                        
+                        <input type="hidden" name="maMoHinhStr" th:value="${product.maMoHinh}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Kích thước / Tên phiên bản <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="kichThuoc" name="kichThuoc" placeholder="VD: 1/144, Size XL, Bản giới hạn..." required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="giaBan" name="giaBan" min="0" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số lượng tồn kho <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="soLuongTon" name="soLuongTon" min="0" value="10" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mã SKU (Tùy chọn)</label>
+                            <input type="text" class="form-control" id="sku" name="sku" placeholder="Để trống sẽ tự sinh mã">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tình trạng hàng</label>
+                            <select class="form-select" id="tinhTrang" name="tinhTrang">
+                                <option value="Mới">Hàng mới</option>
+                                <option value="Như mới">Như mới 99%</option>
+                                <option value="Đã qua sử dụng">Hàng đã qua sử dụng</option>
+                                <option value="Trưng bày">Hàng trưng bày</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button th:if="${session.user != null and session.user.hasPermission('PRODUCT_VARIANT_MANAGE')}"
+                                type="submit" class="btn btn-primary">Lưu biến thể</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            var myModal = new bootstrap.Modal(document.getElementById('variantModal'));
+            
+            if (id) {
+
+                document.getElementById('modalTitle').innerText = 'Cập nhật biến thể';
+                
+                fetch('/admin/variants/api/' + id)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('maBienThe').value = data.maBienThe;
+                        document.getElementById('kichThuoc').value = data.kichThuoc;
+                        document.getElementById('giaBan').value = data.giaBan;
+                        document.getElementById('soLuongTon').value = data.soLuongTon;
+                        document.getElementById('sku').value = data.sku;
+                        const tinhTrangMap = {
+                            'New': 'Mới',
+                            'Like New': 'Như mới',
+                            '2nd': 'Đã qua sử dụng'
+                        };
+                        document.getElementById('tinhTrang').value = tinhTrangMap[data.tinhTrang] ?? data.tinhTrang ?? 'Mới';
+                        myModal.show();
+                    })
+                    .catch(error => alert('Lỗi tải dữ liệu!'));
+            } else {
+
+                document.getElementById('modalTitle').innerText = 'Thêm biến thể mới';
+
+                document.getElementById('maBienThe').value = '';
+                document.getElementById('kichThuoc').value = '';
+                document.getElementById('giaBan').value = '';
+                document.getElementById('soLuongTon').value = '10';
+                document.getElementById('sku').value = '';
+                document.getElementById('tinhTrang').value = 'Mới';
+                
+                myModal.show();
+            }
+        }
+    </script>
+
+</body>
+</html>

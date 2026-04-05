@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+<style>
+    :root {
+        --primary-color: #0f67b1;
+        --primary-light: #e8f4ff;
+        --text-dark: #2c3e50;
+        --text-gray: #6c757d;
+        --border-color: #e9ecef;
+        --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+        --shadow-md: 0 8px 24px rgba(15, 103, 177, 0.18);
+    }
+
+    .inbound-page {
+        background-color: #f5f9ff;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
+
+    .inbound-shell {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+
+    .order-list-container {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        height: calc(100vh - 140px); 
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color);
+    }
+
+    .order-list-scroll {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .order-list-scroll::-webkit-scrollbar { width: 5px; }
+    .order-list-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+    .order-list-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    .order-list-scroll::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+    .order-item {
+        display: block;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--text-dark);
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .order-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-color: var(--primary-color);
+        background-color: #fafbfc;
+    }
+
+    .order-item.active {
+        background: linear-gradient(135deg, var(--primary-color), #0a446f);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: var(--shadow-md);
+    }
+
+    .order-item .code { font-weight: 700; font-size: 1.1rem; }
+    .order-item .date { font-size: 0.85rem; opacity: 0.8; }
+    .order-item .note {
+        font-size: 0.9rem;
+        margin-top: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--text-gray);
+    }
+    .order-item.active .note { color: rgba(255,255,255,0.85); }
+    .order-item .total {
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-top: 8px;
+        text-align: right;
+    }
+
+    .detail-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        border: none;
+        height: 100%;
+    }
+
+    .detail-header {
+        background: #fff;
+        padding: 20px;
+        border-bottom: 1px solid var(--border-color);
+        border-radius: 12px 12px 0 0;
+    }
+
+    /* --- Inputs & Buttons --- */
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dce0e4;
+        padding: 0.6rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 3px rgba(15, 103, 177, 0.15);
+        border-color: var(--primary-color);
+    }
+
+    .btn-soft {
+        background: #eef6ff;
+        color: var(--primary-color);
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+    }
+    .btn-soft:hover { background: #deeeff; color: #0a446f; }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+    }
+
+    .table-custom th {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border-color);
+    }
+    .table-custom td {
+        vertical-align: middle;
+        padding: 1rem 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+
+    @media (max-width: 992px) {
+        .order-list-container { height: 400px; margin-bottom: 20px; }
+    }
+</style>
+
+<div class="container-fluid inbound-page py-4">
+    <div class="inbound-shell">
+        
+        <div th:if="${success}" class="alert alert-success shadow-sm rounded-3 border-0 d-flex align-items-center mb-4">
+            <i class="fas fa-check-circle me-2 fs-5"></i> <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-danger shadow-sm rounded-3 border-0 d-flex align-items-center mb-4">
+            <i class="fas fa-exclamation-triangle me-2 fs-5"></i> <span th:text="${error}"></span>
+        </div>
+
+        <div class="row align-items-center mb-4">
+            <div class="col-md-5">
+                <h3 class="fw-bold text-dark mb-1"><i class="fas fa-truck-loading me-2 text-primary"></i>Nhập hàng & Kho</h3>
+                <p class="text-muted mb-0 small">Quản lý các đợt nhập hàng và cập nhật số lượng tồn kho tự động.</p>
+            </div>
+            <div class="col-md-7">
+                <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+                    <form class="d-flex gap-2 bg-white p-1 rounded-3 shadow-sm border" th:action="@{/admin/inbound}" method="get">
+                        <input type="date" class="form-control border-0 bg-transparent py-1" name="from" th:value="${from}" title="Từ ngày">
+                        <span class="align-self-center text-muted">-</span>
+                        <input type="date" class="form-control border-0 bg-transparent py-1" name="to" th:value="${to}" title="Đến ngày">
+                        <button class="btn btn-sm btn-light text-primary fw-bold"><i class="fas fa-filter"></i></button>
+                    </form>
+                    
+                    <form th:if="${session.user != null and session.user.hasPermission('INBOUND_CREATE')}"
+                          class="d-flex gap-2" th:action="@{/admin/inbound/create}" method="post">
+                        <input name="ghiChu" class="form-control shadow-sm" placeholder="Ghi chú đợt nhập...">
+                        <button class="btn btn-primary shadow-sm text-nowrap"><i class="fas fa-plus me-1"></i> Tạo đơn</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            <div class="col-lg-4 col-xl-3">
+                <div class="order-list-container">
+                    <div class="p-3 border-bottom bg-white rounded-top">
+                        <h6 class="fw-bold m-0 text-secondary text-uppercase small">Danh sách đơn nhập</h6>
+                    </div>
+                    <div class="order-list-scroll">
+                        <div th:if="${#lists.isEmpty(orders)}" class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3 opacity-25"></i>
+                            <p>Chưa có đơn nhập nào</p>
+                        </div>
+
+                        <a th:each="order : ${orders}"
+                           th:href="@{/admin/inbound(don=${order.maDonNhap})}"
+                           class="order-item"
+                           th:classappend="${selected != null and selected.maDonNhap == order.maDonNhap} ? ' active'">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="code">#<span th:text="${order.maDonNhap}"></span></span>
+                                <span class="date"><i class="far fa-clock me-1"></i><span th:text="${#temporals.format(order.ngayNhap, 'dd/MM/yyyy')}"></span></span>
+                            </div>
+                            <div class="note">
+                                <i class="fas fa-comment-alt me-1 opacity-50"></i>
+                                <span th:text="${order.ghiChu != null && !#strings.isEmpty(order.ghiChu) ? order.ghiChu : 'Không có ghi chú'}"></span>
+                            </div>
+                            <div class="total" th:text="${#numbers.formatInteger(order.tongTienNhap,0,'COMMA')} + ' đ'"></div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8 col-xl-9">
+                <div th:if="${selected == null}" class="detail-card d-flex align-items-center justify-content-center flex-column text-muted p-5" style="height: calc(100vh - 140px);">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="120" class="opacity-25 mb-3">
+                    <h5>Chọn một đơn nhập để xem chi tiết</h5>
+                </div>
+
+                <div th:if="${selected != null}" class="detail-card">
+                    <div class="p-3 border-bottom bg-white rounded-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <form th:if="${session.user != null and session.user.hasPermission('INBOUND_UPDATE')}"
+                              class="d-flex gap-2 flex-grow-1" th:action="@{'/admin/inbound/' + ${selected.maDonNhap} + '/update'}" method="post">
+                            <input class="form-control" name="ghiChu" th:value="${selected.ghiChu}" placeholder="Cập nhật ghi chú...">
+                            <button class="btn btn-soft text-nowrap" type="submit"><i class="fas fa-save"></i> Lưu</button>
+                        </form>
+                        <form th:if="${session.user != null and session.user.hasPermission('INBOUND_DELETE')}"
+                              th:action="@{'/admin/inbound/' + ${selected.maDonNhap} + '/delete'}" method="post"
+                              onsubmit="return confirm('CẢNH BÁO: Xóa đơn nhập này sẽ trừ lại số lượng tồn kho tương ứng. Bạn có chắc chắn không?')">
+                            <button class="btn btn-outline-danger" type="submit"><i class="fas fa-trash-alt me-1"></i> Xóa đơn</button>
+                        </form>
+                    </div>
+
+                    <div th:if="${session.user != null and session.user.hasPermission('INBOUND_UPDATE')}" class="p-4 bg-light border-bottom">
+                        <h6 class="fw-bold text-primary mb-3"><i class="fas fa-cart-plus me-1"></i> Thêm đồ chơi vào đơn #<span th:text="${selected.maDonNhap}"></span></h6>
+                        <form class="row g-2 align-items-end" th:action="@{'/admin/inbound/' + ${selected.maDonNhap} + '/detail'}" method="post">
+                            <div class="col-md-5">
+                                <label class="small text-muted mb-1">Chọn đồ chơi (Kích thước - Tồn kho)</label>
+                                <select class="form-select" name="maBienThe" required>
+                                    <option value="">-- Chọn đồ chơi --</option>
+                                    <option th:each="v : ${variants}" th:value="${v.maBienThe}"
+                                            th:text="${v.moHinh.tenMoHinh + ' [' + v.kichThuoc + '] (Tồn: ' + v.soLuongTon + ')'}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="small text-muted mb-1">Số lượng</label>
+                                <input class="form-control" type="number" min="1" name="soLuong" value="1" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="small text-muted mb-1">Giá nhập (VNĐ)</label>
+                                <input class="form-control" type="number" min="0" name="giaNhap" required placeholder="0">
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary w-100"><i class="fas fa-plus"></i> Thêm</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-custom table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Đồ chơi</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th>Giá nhập</th>
+                                    <th>Thành tiền</th>
+                                    <th class="text-end pe-4">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="ct : ${details}">
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark" th:text="${ct.bienThe.moHinh.tenMoHinh}"></div>
+                                        <div class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill fw-normal mt-1" th:text="${ct.bienThe.kichThuoc}"></div>
+                                    </td>
+                                    
+                                    <form th:action="@{'/admin/inbound/' + ${selected.maDonNhap} + '/detail/' + ${ct.maChiTietNhap} + '/update'}" method="post">
+                                        <td style="width: 120px;">
+                                            <input type="number" class="form-control form-control-sm text-center fw-bold" min="1" name="soLuong"
+                                                   th:value="${ct.soLuongNhap}"
+                                                   th:readonly="${session.user == null or !session.user.hasPermission('INBOUND_UPDATE')}">
+                                        </td>
+                                        <td style="width: 150px;">
+                                            <input type="number" class="form-control form-control-sm" min="0" name="giaNhap"
+                                                   th:value="${ct.giaNhap}"
+                                                   th:readonly="${session.user == null or !session.user.hasPermission('INBOUND_UPDATE')}">
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="fw-bold text-primary" th:text="${#numbers.formatInteger(ct.giaNhap * ct.soLuongNhap,0,'COMMA')}"></span>
+                                            <span class="small text-muted">đ</span>
+                                            <button th:if="${session.user != null and session.user.hasPermission('INBOUND_UPDATE')}"
+                                                    class="btn btn-link btn-sm p-0 ms-2" title="Lưu thay đổi"><i class="fas fa-check text-success"></i></button>
+                                        </td>
+                                    </form>
+
+                                    <td class="text-end pe-4">
+                                        <form th:if="${session.user != null and session.user.hasPermission('INBOUND_DELETE')}"
+                                              th:action="@{'/admin/inbound/' + ${selected.maDonNhap} + '/detail/' + ${ct.maChiTietNhap} + '/delete'}"
+                                              method="post" onsubmit="return confirm('Xóa dòng này sẽ trừ lại tồn kho. Tiếp tục?')">
+                                            <button class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-times"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(details)}">
+                                    <td colspan="5" class="text-center py-5 text-muted fst-italic">
+                                        Đơn hàng rỗng. Hãy thêm đồ chơi ở trên.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-bottom text-end border-top">
+                        <span class="text-muted me-2">Tổng giá trị đơn nhập:</span>
+                        <span class="fs-4 fw-bold text-danger" th:text="${#numbers.formatInteger(selected.tongTienNhap,0,'COMMA')} + ' đ'">0 đ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

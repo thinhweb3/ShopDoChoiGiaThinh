@@ -1,0 +1,143 @@
+<div xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/_layout :: dynamic(~{::main})}">
+    <main>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small bg-light p-2 rounded">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+                <li class="breadcrumb-item active fw-bold text-dark">Danh sách đồ chơi</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold text-uppercase py-3">
+                        <i class="fas fa-filter text-main me-2"></i> Bộ lọc tìm kiếm
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/product/list}" method="get">
+                            <h6 class="fw-bold mt-2">Từ khóa</h6>
+                            <input type="text" class="form-control form-control-sm" name="keyword"
+                                   th:value="${selectedKeyword}" placeholder="Tên hàng hoặc mã hàng">
+
+                            <h6 class="fw-bold mt-3">Loại hàng</h6>
+                            <select class="form-select form-select-sm" name="cid">
+                                <option value="">Tất cả loại hàng</option>
+                                <option th:each="c : ${cates}" th:value="${c.maDanhMuc}" th:text="${c.tenDanhMuc}"
+                                        th:selected="${selectedCid != null and selectedCid == c.maDanhMuc}"></option>
+                            </select>
+
+                            <h6 class="fw-bold mt-3">Khoảng giá</h6>
+                            <div class="form-check my-2">
+                                <input class="form-check-input" type="checkbox" id="p0" name="price" value="under100"
+                                       th:checked="${selectedPrices != null and #lists.contains(selectedPrices, 'under100')}">
+                                <label class="form-check-label small" for="p0">Dưới 100k</label>
+                            </div>
+                            <div class="form-check my-2">
+                                <input class="form-check-input" type="checkbox" id="p1" name="price" value="100to300"
+                                       th:checked="${selectedPrices != null and #lists.contains(selectedPrices, '100to300')}">
+                                <label class="form-check-label small" for="p1">100k - 300k</label>
+                            </div>
+                            <div class="form-check my-2">
+                                <input class="form-check-input" type="checkbox" id="p2" name="price" value="300to1000"
+                                       th:checked="${selectedPrices != null and #lists.contains(selectedPrices, '300to1000')}">
+                                <label class="form-check-label small" for="p2">300k - 1 triệu</label>
+                            </div>
+                            <div class="form-check my-2">
+                                <input class="form-check-input" type="checkbox" id="p3" name="price" value="1000to2000"
+                                       th:checked="${selectedPrices != null and #lists.contains(selectedPrices, '1000to2000')}">
+                                <label class="form-check-label small" for="p3">1 triệu - 2 triệu</label>
+                            </div>
+                            <div class="form-check my-2">
+                                <input class="form-check-input" type="checkbox" id="p4" name="price" value="above2000"
+                                       th:checked="${selectedPrices != null and #lists.contains(selectedPrices, 'above2000')}">
+                                <label class="form-check-label small" for="p4">Trên 2 triệu</label>
+                            </div>
+
+                            <h6 class="fw-bold mt-3">Sắp xếp</h6>
+                            <select class="form-select form-select-sm" name="sort">
+                                <option value="newest" th:selected="${selectedSort == 'newest'}">Mới nhất</option>
+                                <option value="priceAsc" th:selected="${selectedSort == 'priceAsc'}">Giá thấp đến cao</option>
+                                <option value="priceDesc" th:selected="${selectedSort == 'priceDesc'}">Giá cao đến thấp</option>
+                                <option value="nameAsc" th:selected="${selectedSort == 'nameAsc'}">Tên A-Z</option>
+                            </select>
+
+                            <hr>
+                            <button type="submit" class="btn btn-main w-100 btn-sm">Áp dụng</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9 col-md-8">
+                <div class="banner-qc mb-4 d-flex align-items-center justify-content-center">
+                    <div class="banner-overlay"></div>
+                    <div class="position-relative text-center p-4">
+                        <h2 class="fw-bold text-uppercase mb-2">Catalog đồ chơi</h2>
+                        <p class="mb-3">Website tập trung hiển thị đồ chơi, tồn kho và báo giá nhanh. Bấm đặt hàng để lấy hotline và Zalo.</p>
+                        <a th:href="${storeContactZaloLink}" target="_blank" rel="noopener noreferrer" class="btn btn-light rounded-pill px-4 fw-bold text-main">
+                            Liên hệ shop
+                        </a>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded shadow-sm flex-wrap gap-2">
+                    <span class="fw-bold">Hiển thị <span class="text-main" th:text="${items.size()}">0</span> đồ chơi</span>
+                    <span class="small text-muted" th:if="${selectedKeyword != null and !selectedKeyword.isEmpty()}"
+                          th:text="'Từ khóa: ' + ${selectedKeyword}"></span>
+                </div>
+
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+                    <div class="col" th:each="p : ${items}">
+                        <div class="card h-100 product-card border-0 shadow-sm">
+                            <div class="position-relative bg-white">
+                                <a th:href="@{|/product/detail/${p.maMoHinh}|}">
+                                    <img th:src="${@assetUrlService.product(p.hinhAnh)}" class="card-img-top p-3" alt="Ảnh đồ chơi" style="height: 220px; object-fit: contain;">
+                                </a>
+                                <span class="position-absolute top-0 start-0 badge bg-light text-dark border m-2"
+                                      th:text="${p.danhMuc != null ? p.danhMuc.tenDanhMuc : 'Đồ chơi'}">Loại hàng</span>
+                            </div>
+
+                            <div class="card-body d-flex flex-column">
+                                <div class="small text-muted mb-1" th:text="${p.hangSanXuat != null ? p.hangSanXuat.tenHang : 'Chưa cập nhật thương hiệu'}">Thương hiệu</div>
+                                <h6 class="card-title mb-2">
+                                    <a th:href="@{|/product/detail/${p.maMoHinh}|}" class="text-decoration-none text-dark fw-bold" th:text="${p.tenMoHinh}">Tên đồ chơi</a>
+                                </h6>
+                                <div class="small text-muted mb-2" th:text="'Mã hàng: ' + ${p.maMoHinh}">Mã hàng</div>
+
+                                <div class="fw-bold text-main fs-5 mb-2">
+                                    <span th:if="${displayPrices[p.maMoHinh] != null}"
+                                          th:text="${#numbers.formatDecimal(displayPrices[p.maMoHinh], 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                    <span th:if="${displayPrices[p.maMoHinh] == null}" class="text-muted small">Liên hệ</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between small text-muted mb-3">
+                                    <span th:text="'Tồn kho: ' + ${@productService.getAvailableStock(p)}">Tồn kho</span>
+                                    <span th:text="${p.donViTinh != null ? p.donViTinh : 'Cái'}">ĐVT</span>
+                                </div>
+
+                                <div class="mt-auto d-grid gap-2">
+                                    <a th:href="@{|/product/detail/${p.maMoHinh}|}" class="btn btn-outline-dark rounded-pill btn-sm">
+                                        Xem chi tiết
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-success rounded-pill btn-sm"
+                                            th:attr="data-product-code=${p.maMoHinh},
+                                                     data-product-name=${p.tenMoHinh},
+                                                     data-product-price=${displayPrices[p.maMoHinh] != null ? #numbers.formatDecimal(displayPrices[p.maMoHinh], 0, 'COMMA', 0, 'POINT') + ' đ' : 'Liên hệ'},
+                                                     data-product-stock=${@productService.getAvailableStock(p)}"
+                                            onclick="openOrderPopupFromElement(this)">
+                                        <i class="fas fa-phone-volume me-1"></i> Đặt hàng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${items.size() == 0}" class="text-center py-5">
+                    <p class="text-muted mt-3">Không tìm thấy đồ chơi nào.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

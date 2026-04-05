@@ -1,0 +1,122 @@
+<div xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/_layout :: dynamic(~{::main})}">
+    <main>
+        <div class="container py-4">
+            <div class="row g-5">
+                <div class="col-lg-5">
+                    <div class="bg-white rounded-4 shadow-sm p-4 text-center">
+                        <img th:src="${@assetUrlService.product(item.hinhAnh)}"
+                             class="img-fluid"
+                             style="object-fit: contain; max-height: 450px;"
+                             alt="Ảnh chi tiết đồ chơi">
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="small text-muted mb-2" th:text="${item.danhMuc != null ? item.danhMuc.tenDanhMuc : 'Đồ chơi'}">Loại hàng</div>
+                    <h2 class="fw-bold text-dark mb-2" th:text="${item.tenMoHinh}">Tên đồ chơi</h2>
+                    <div class="text-muted mb-3" th:text="'Mã hàng: ' + ${item.maMoHinh}">Mã hàng</div>
+
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="badge bg-light text-dark border" th:text="${item.hangSanXuat != null ? item.hangSanXuat.tenHang : 'Chưa cập nhật thương hiệu'}">Thương hiệu</span>
+                        <span class="badge bg-light text-dark border" th:text="${item.nhomHang != null ? item.nhomHang : 'Chưa cập nhật nhóm hàng'}">Nhóm hàng</span>
+                        <span class="badge bg-light text-dark border" th:text="'Tồn kho: ' + ${@productService.getAvailableStock(item)}">Tồn kho</span>
+                    </div>
+
+                    <div class="bg-light rounded-4 p-4 mb-4">
+                        <div class="small text-muted mb-1">Giá bán</div>
+                        <div class="fw-bold text-main display-6">
+                            <span th:if="${@productService.getMinPrice(item) != null}"
+                                  th:text="${#numbers.formatDecimal(@productService.getMinPrice(item), 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                            <span th:if="${@productService.getMinPrice(item) == null}">Liên hệ</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted">Đơn vị tính</div>
+                                <div class="fw-semibold" th:text="${item.donViTinh != null ? item.donViTinh : 'Cái'}">Cái</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted">Quy cách</div>
+                                <div class="fw-semibold" th:text="${item.quyCach != null ? item.quyCach : 'Đang cập nhật'}">Đang cập nhật</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted">Giá vốn</div>
+                                <div class="fw-semibold" th:text="${item.giaVon != null ? #numbers.formatDecimal(item.giaVon, 0, 'COMMA', 0, 'POINT') + ' đ' : 'Đang cập nhật'}">Đang cập nhật</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted">Mẫu ghi chú</div>
+                                <div class="fw-semibold" th:text="${item.mauGhiChu != null ? item.mauGhiChu : 'Không có'}">Không có</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid d-sm-flex gap-3 mb-4">
+                        <button type="button"
+                                class="btn btn-success btn-lg rounded-pill px-4"
+                                th:attr="data-product-code=${item.maMoHinh},
+                                         data-product-name=${item.tenMoHinh},
+                                         data-product-price=${@productService.getMinPrice(item) != null ? #numbers.formatDecimal(@productService.getMinPrice(item), 0, 'COMMA', 0, 'POINT') + ' đ' : 'Liên hệ'},
+                                         data-product-stock=${@productService.getAvailableStock(item)}"
+                                onclick="openOrderPopupFromElement(this)">
+                            <i class="fas fa-phone-volume me-2"></i>Đặt hàng ngay
+                        </button>
+                        <a th:href="${storeContactZaloLink}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-lg rounded-pill px-4">
+                            <i class="fas fa-comment-dots me-2"></i>Nhắn Zalo
+                        </a>
+                    </div>
+
+                    <div class="card bg-light border-0 rounded-4">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-circle-info me-2"></i>Mô tả đồ chơi</h6>
+                            <div class="text-secondary" style="font-size: 0.95rem; line-height: 1.7;">
+                                <p th:utext="${item.moTa}" class="m-0">Đang cập nhật...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5" th:if="${relatedProducts != null and !#lists.isEmpty(relatedProducts)}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold m-0">Đồ chơi liên quan</h4>
+                    <a href="/product/list" class="text-decoration-none text-main fw-semibold">Xem thêm</a>
+                </div>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3">
+                    <div class="col" th:each="related : ${relatedProducts}" th:if="${related.maMoHinh != item.maMoHinh}">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <a th:href="@{|/product/detail/${related.maMoHinh}|}" class="text-center bg-white p-3">
+                                <img th:src="${@assetUrlService.product(related.hinhAnh)}" style="height: 180px; object-fit: contain;" class="img-fluid" alt="Ảnh đồ chơi liên quan">
+                            </a>
+                            <div class="card-body">
+                                <div class="small text-muted mb-1" th:text="${related.hangSanXuat != null ? related.hangSanXuat.tenHang : 'Chưa cập nhật thương hiệu'}">Thương hiệu</div>
+                                <h6 class="fw-bold" th:text="${related.tenMoHinh}">Tên đồ chơi</h6>
+                                <div class="fw-semibold text-main mb-3">
+                                    <span th:if="${@productService.getMinPrice(related) != null}"
+                                          th:text="${#numbers.formatDecimal(@productService.getMinPrice(related), 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                    <span th:if="${@productService.getMinPrice(related) == null}" class="text-muted small">Liên hệ</span>
+                                </div>
+                                <button type="button"
+                                        class="btn btn-outline-success rounded-pill w-100"
+                                        th:attr="data-product-code=${related.maMoHinh},
+                                                 data-product-name=${related.tenMoHinh},
+                                                 data-product-price=${@productService.getMinPrice(related) != null ? #numbers.formatDecimal(@productService.getMinPrice(related), 0, 'COMMA', 0, 'POINT') + ' đ' : 'Liên hệ'},
+                                                 data-product-stock=${@productService.getAvailableStock(related)}"
+                                        onclick="openOrderPopupFromElement(this)">
+                                    Liên hệ đặt hàng
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

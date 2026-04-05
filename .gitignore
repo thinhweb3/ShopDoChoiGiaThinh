@@ -1,0 +1,54 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.metadata/
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Local runtime data ###
+.env
+.env.*
+!.env.example
+data/
+*.log
+
+### Generated and local-only folders ###
+bin/
+ok/
+
+### Temporary Office files ###
+~$*
+
+### Legacy or backup files not used by Maven build ###
+src/ReportController.java
+src/reports.html
+src/dto/
+src/main/webapp/

@@ -1,0 +1,214 @@
+HƯỚNG DẪN SỬ DỤNG WEBSITE ASM2
+
+1) Tổng quan hệ thống
+- Nền tảng: Spring Boot + Thymeleaf + SQL Server.
+- Mục tiêu: Website bán mô hình figure, gồm 2 nhóm chức năng:
+  1. User: xem sản phẩm, giỏ hàng, đặt hàng, theo dõi đơn, đánh giá, yêu thích.
+  2. Admin: quản lý dữ liệu, đơn hàng, nhập kho, thống kê báo cáo.
+
+2) Chuẩn bị môi trường
+2.1 Yêu cầu
+- Java 17+
+- Maven 3.6+
+- SQL Server
+
+2.2 Cấu hình
+Chỉnh file: src/main/resources/application.properties
+- spring.datasource.url
+- spring.datasource.username
+- spring.datasource.password
+- Cấu hình mail (nếu cần)
+- Cấu hình QR thanh toán:
+  - payment.qr.bank-id
+  - payment.qr.account
+  - payment.qr.acq-name
+  - payment.qr.template
+
+2.3 Chạy dự án
+Lệnh:
+.\mvnw spring-boot:run
+
+Truy cập:
+http://localhost:8080
+
+3) Các luồng chức năng User
+
+3.1 Đăng ký, đăng nhập, đăng xuất
+- Đăng ký: GET/POST /account/sign-up
+  - Validate:
+    - Mật khẩu và xác nhận mật khẩu phải trùng.
+    - Username không trùng.
+    - Email không trùng.
+  - Thành công chuyển về trang login.
+
+- Đăng nhập: GET/POST /auth/login
+  - Sai thông tin: hiển thị thông báo lỗi.
+  - Đúng thông tin: lưu user vào session.
+
+- Đăng xuất: GET /auth/logoff
+  - Xóa user khỏi session.
+
+3.2 Duyệt sản phẩm
+- Trang chủ: GET / hoặc /home/index
+  - Hiển thị danh mục và sản phẩm nổi bật.
+
+- Danh sách sản phẩm: GET /product/list
+  - Hỗ trợ lọc theo:
+    - Danh mục (cid)
+    - Từ khóa (keyword)
+    - Khoảng giá (price: 300to1000, 1000to2000, above2000)
+    - Sắp xếp (sort: newest, priceAsc, priceDesc, nameAsc)
+
+- Chi tiết sản phẩm: GET /product/detail/{id}
+  - Hiển thị:
+    - Thông tin sản phẩm
+    - Sản phẩm liên quan cùng danh mục
+    - Đánh giá và điểm trung bình
+
+3.3 Giỏ hàng
+- Xem giỏ: GET /cart/view
+- Thêm vào giỏ: GET /cart/add/{maBienThe}
+  - Kiểm tra đăng nhập.
+  - Kiểm tra tồn kho trước khi thêm.
+- Sửa số lượng: GET /cart/update/{maGioHang}?qty=...
+- Xóa 1 dòng: GET /cart/remove/{maGioHang}
+- Xóa toàn bộ: GET /cart/clear
+
+3.4 Đặt hàng và thanh toán
+- Checkout: GET /order/checkout
+  - Chưa đăng nhập -> chuyển login.
+  - Giỏ hàng rỗng -> về home.
+  - Tính:
+    - originalAmount (tổng tiền hàng)
+    - discountAmount (giảm giá từ voucher)
+    - amount (tổng cuối)
+
+- Áp dụng voucher: POST /order/apply-voucher
+  - Validate:
+    - Mã tồn tại và đang hoạt động.
+    - Còn số lượt.
+    - Đang trong thời gian áp dụng.
+    - Đủ giá trị đơn tối thiểu.
+  - Hợp lệ thì lưu voucher vào session.
+
+- Hủy voucher: GET /order/remove-voucher
+
+- Mua hàng: POST /order/purchase
+  - Validate địa chỉ không chứa ký tự đặc biệt (+ - * / ...).
+  - Tạo đơn hàng + chi tiết đơn.
+  - Phí vận chuyển mặc định: 30.000.
+  - Trừ lượt voucher nếu dùng hợp lệ.
+  - Payment:
+    - COD -> /order/success
+    - CHUYEN_KHOAN -> /order/payment-qr/{id}
+
+- Thanh toán QR:
+  - GET /order/payment-qr/{id}: tạo URL QR theo cấu hình.
+  - POST /order/confirm-payment/{id}:
+    - Kiểm tra đơn thuộc user.
+    - Kiểm tra tồn kho và trừ tồn.
+    - Cập nhật trạng thái thanh toán “Đã thanh toán”.
+
+3.5 Đơn hàng, yêu thích, đánh giá, hồ sơ
+- Lịch sử đơn: GET /order/list
+- Chi tiết đơn: GET /order/detail/{id} (chỉ xem đơn của chính mình)
+- Yêu thích:
+  - Xem: GET /favorite/view
+  - Bật/tắt: GET /favorite/toggle/{maMoHinh}
+  - Xóa: GET /favorite/remove/{maMoHinh}
+- Đánh giá sản phẩm: POST /rating/add
+- Hồ sơ:
+  - Xem: GET /account/profile
+  - Cập nhật thông tin: POST /account/update-profile
+  - Đổi mật khẩu: POST /account/change-password
+
+4) Các luồng chức năng Admin
+
+4.1 Dashboard và Báo cáo
+- Dashboard: GET /admin/dashboard
+  - Tổng hợp 30 ngày gần nhất:
+    - Tổng doanh thu, tổng đơn, tổng sản phẩm bán
+    - Top khách hàng, top sản phẩm
+    - Biểu đồ doanh thu theo tháng
+    - Đơn hàng theo trạng thái
+
+- Báo cáo chi tiết: GET /admin/reports
+  - Lọc theo startDate, endDate.
+  - Mặc định 30 ngày gần nhất nếu không truyền tham số.
+  - Hiển thị:
+    - Doanh thu theo danh mục
+    - Top 10 khách VIP
+    - Top 10 sản phẩm bán chạy
+    - Biểu đồ doanh thu theo tháng
+    - Biểu đồ đơn theo trạng thái
+
+4.2 CRUD dữ liệu
+- Quản lý sản phẩm: /admin/products
+- Quản lý biến thể: /admin/variants/{maMoHinh}
+- Quản lý danh mục: /admin/categories
+- Quản lý hãng sản xuất: /admin/manufacturers
+- Quản lý khuyến mãi: /admin/promotions
+- Quản lý tài khoản: /admin/accounts
+  - Có chức năng khóa/mở khóa tài khoản.
+
+4.3 Quản lý đơn hàng Admin
+- Danh sách + lọc + phân trang: GET /admin/orders
+- Xem chi tiết qua API: GET /admin/orders/api/{id}
+- Cập nhật trạng thái: POST /admin/orders/update
+- Hủy đơn: POST /admin/orders/cancel/{id}
+- Xóa đơn: GET /admin/orders/delete/{id}
+- Thống kê nhanh trạng thái: GET /admin/orders/stats
+
+4.4 Luồng nhập kho
+- Màn hình nhập kho: GET /admin/inbound
+- Tạo đơn nhập: POST /admin/inbound/create
+- Sửa ghi chú đơn nhập: POST /admin/inbound/{id}/update
+- Xóa đơn nhập: POST /admin/inbound/{id}/delete
+- Thêm chi tiết nhập: POST /admin/inbound/{id}/detail
+- Sửa chi tiết nhập: POST /admin/inbound/{donId}/detail/{detailId}/update
+- Xóa chi tiết nhập: POST /admin/inbound/{donId}/detail/{detailId}/delete
+
+Logic kho:
+- Thêm chi tiết nhập: cộng tồn kho biến thể.
+- Sửa chi tiết nhập: điều chỉnh tồn theo chênh lệch số lượng.
+- Xóa chi tiết/đơn nhập: trừ tồn kho tương ứng.
+- Đơn nhập lưu tongTienNhap = tổng(giaNhap * soLuongNhap).
+
+5) Logic nghiệp vụ quan trọng
+- Xác thực dùng session (AuthService), lưu user trong key “user”.
+- Voucher được validate 2 lần:
+  1. Khi apply voucher (controller).
+  2. Khi place order (service) để tránh race condition.
+- Tồn kho:
+  1. Kiểm tra tồn kho khi thêm vào giỏ.
+  2. Trừ tồn kho khi user xác nhận thanh toán QR.
+- Báo cáo dùng SQL native query trong ReportService để tổng hợp KPI.
+
+6) Test hiện có
+Vị trí test:
+- src/test/java/com/example/asm/AsmApplicationTests.java
+- src/test/java/com/example/asm/ServletInitializerTest.java
+- src/test/java/com/example/asm/controller/HomeControllerTest.java
+
+Nội dung test:
+- AsmApplicationTests:
+  - Kiểm tra AsmApplication có @SpringBootApplication.
+- ServletInitializerTest:
+  - Kiểm tra ServletInitializer.configure(...) đăng ký đúng source app.
+- HomeControllerTest:
+  - Kiểm tra index() trả về view fragments/home.
+  - Kiểm tra model có topItems.
+  - Kiểm tra getCategories() lấy dữ liệu đúng từ CategoryService.
+
+7) Cách chạy test
+Lệnh:
+.\mvnw -q test
+
+Trạng thái hiện tại: PASS.
+
+8) Gợi ý mở rộng test
+- Nên bổ sung test cho:
+  1. Luồng đặt hàng + voucher + payment QR.
+  2. CartService và logic tồn kho.
+  3. Luồng admin (CRUD và inbound).
+  4. ReportService (aggregation với dữ liệu mẫu).

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark m-0">Quản lý Danh mục</h3>
+            <button th:if="${session.user != null and session.user.hasPermission('CATEGORY_CREATE')}"
+                    class="btn btn-primary" onclick="openModal(null)">
+                <i class="fas fa-plus me-2"></i> Thêm danh mục
+            </button>
+        </div>
+
+        <div th:if="${message != null}"
+             th:class="${'alert alert-dismissible fade show ' + (messageType == 'success' ? 'alert-success' : 'alert-danger')}"
+             role="alert">
+            <i class="fas" th:classappend="${messageType == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+            <span th:text="${message}">Thông báo</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Tên danh mục</th>
+                                <th>Mô tả</th>
+                                <th class="text-end pe-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="c : ${categories}">
+                                <td class="ps-4 fw-bold text-muted" th:text="${c.maDanhMuc}">1</td>
+                                <td class="fw-bold text-primary" th:text="${c.tenDanhMuc}">Đồ chơi anime</td>
+                                <td class="text-muted small" style="max-width: 420px;" th:text="${c.moTa != null and !#strings.isEmpty(c.moTa) ? c.moTa : 'Chưa có mô tả'}">
+                                    Chưa có mô tả
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button th:if="${session.user != null and session.user.hasPermission('CATEGORY_UPDATE')}"
+                                            class="btn btn-sm btn-light border me-1"
+                                            th:onclick="'openModal(' + ${c.maDanhMuc} + ')'" title="Sửa">
+                                        <i class="fas fa-pen text-primary"></i>
+                                    </button>
+
+                                    <a th:if="${session.user != null and session.user.hasPermission('CATEGORY_DELETE')}"
+                                       th:href="@{|/admin/categories/delete/${c.maDanhMuc}|}"
+                                       class="btn btn-sm btn-light border text-danger"
+                                       onclick="return confirm('Bạn có chắc muốn xóa danh mục này không?');">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div th:if="${#lists.isEmpty(categories)}" class="text-center py-5">
+                    <p class="text-muted mb-0">Chưa có danh mục nào.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="categoryForm" action="/admin/categories/save" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Thêm danh mục</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="maDanhMuc" name="maDanhMuc">
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="tenDanhMuc" name="tenDanhMuc" required maxlength="100">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="moTa" name="moTa" rows="4" maxlength="500"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button th:if="${session.user != null and (session.user.hasPermission('CATEGORY_CREATE') or session.user.hasPermission('CATEGORY_UPDATE'))}"
+                                type="submit" class="btn btn-primary">Lưu danh mục</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            const myModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+            const categoryForm = document.getElementById('categoryForm');
+
+            if (id) {
+                document.getElementById('modalTitle').innerText = 'Cập nhật danh mục';
+
+                fetch('/admin/categories/api/' + id)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('maDanhMuc').value = data.maDanhMuc;
+                        document.getElementById('tenDanhMuc').value = data.tenDanhMuc ?? '';
+                        document.getElementById('moTa').value = data.moTa ?? '';
+                        myModal.show();
+                    })
+                    .catch(() => alert('Lỗi tải dữ liệu danh mục!'));
+            } else {
+                document.getElementById('modalTitle').innerText = 'Thêm danh mục';
+                categoryForm.reset();
+                document.getElementById('maDanhMuc').value = '';
+                myModal.show();
+            }
+        }
+    </script>
+
+</body>
+</html>

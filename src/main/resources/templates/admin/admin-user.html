@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/admin_layout :: dynamic(~{::body})}">
+<body>
+
+    <style>
+        .role-toggle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .role-toggle-grid .btn {
+            width: 100%;
+            text-align: left;
+            border-radius: 0.9rem;
+            padding: 0.85rem 1rem;
+            font-weight: 600;
+        }
+
+        .role-toggle-grid .btn small {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 400;
+            margin-top: 0.2rem;
+        }
+    </style>
+
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark m-0">Quản lý Tài khoản</h3>
+            <button th:if="${session.user != null and session.user.hasPermission('ACCOUNT_CREATE')}"
+                    class="btn btn-primary" onclick="openModal(null)">
+                <i class="fas fa-plus me-2"></i> Thêm tài khoản
+            </button>
+        </div>
+
+        <div th:if="${message != null}" 
+             th:class="${'alert alert-dismissible fade show ' + (messageType == 'success' ? 'alert-success' : 'alert-danger')}" 
+             role="alert">
+            <i class="fas" th:classappend="${messageType == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+            <span th:text="${message}">Thông báo</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Khách hàng</th>
+                                <th>Liên hệ</th>
+                                <th>Vai trò</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end pe-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="u : ${users}">
+                                <td class="ps-4 fw-bold text-muted" th:text="'#' + ${u.maTaiKhoan}"></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img th:src="${@assetUrlService.avatar(u.avatar)}" class="rounded-circle me-3 border" style="width: 45px; height: 45px; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?background=random&name=Khach%20Hang'">
+                                        <div>
+                                            <div class="fw-bold text-dark" th:text="${u.hoTen}"></div>
+                                            <div class="small text-muted" th:text="'@' + ${u.tenDangNhap}"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small"><i class="fas fa-envelope text-muted me-2"></i><span th:text="${u.email}"></span></div>
+                                    <div class="small"><i class="fas fa-phone text-muted me-2"></i><span th:text="${u.soDienThoai}"></span></div>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill bg-light text-dark border"
+                                          th:text="${u.roleDisplayText}">Khách hàng</span>
+                                </td>
+                                <td>
+                                    <span th:if="${u.trangThai}" class="badge bg-success-subtle text-success border border-success-subtle">Đang hoạt động</span>
+                                    <span th:unless="${u.trangThai}" class="badge bg-danger-subtle text-danger border border-danger-subtle">Đã khóa</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button th:if="${session.user != null and session.user.hasPermission('ACCOUNT_UPDATE')}"
+                                            class="btn btn-sm btn-light border me-1" 
+                                            th:onclick="'openModal(' + ${u.maTaiKhoan} + ')'" title="Sửa thông tin">
+                                        <i class="fas fa-pen text-primary"></i>
+                                    </button>
+
+                                    <a th:if="${session.user != null and session.user.hasPermission('ACCOUNT_LOCK')}"
+                                       th:href="@{|/admin/accounts/toggle-status/${u.maTaiKhoan}|}" class="btn btn-sm btn-light border me-1">
+                                        <i th:class="${u.trangThai ? 'fas fa-lock text-warning' : 'fas fa-lock-open text-success'}"></i>
+                                    </a>
+                                    
+                                    <a th:if="${session.user != null and session.user.hasPermission('ACCOUNT_DELETE')}"
+                                       th:href="@{|/admin/accounts/delete/${u.maTaiKhoan}|}" class="btn btn-sm btn-light border text-danger" onclick="return confirm('Xác nhận xóa?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="userForm" action="/admin/accounts/save" method="post"
+                      th:attr="data-is-super-admin=${isSuperAdmin},data-current-user-id=${currentUserId},data-default-user-role-id=${defaultUserRoleId}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Thêm tài khoản mới</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="userId" name="maTaiKhoan">
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="username" name="tenDangNhap" required>
+                            <small class="text-muted fst-italic" id="usernameNote" style="display:none;">Không thể sửa tên đăng nhập</small>
+                        </div>
+
+                        <div class="mb-3" id="passwordGroup">
+                            <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" name="matKhau" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="fullname" name="hoTen" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Địa chỉ email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" id="phone" name="soDienThoai">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Vai trò</label>
+                            <div id="roles" class="role-toggle-grid">
+                                <th:block th:each="role : ${availableRoles}">
+                                    <input class="btn-check role-input"
+                                           type="checkbox"
+                                           th:id="${'role-' + role.maVaiTro}"
+                                           name="roleIds"
+                                           th:value="${role.maVaiTro}"
+                                           autocomplete="off">
+                                    <label class="btn"
+                                           th:classappend="${role.code == 'SUPER_ADMIN' ? ' btn-outline-dark' : (role.choPhepTruyCapAdmin ? ' btn-outline-primary' : ' btn-outline-success')}"
+                                           th:for="${'role-' + role.maVaiTro}">
+                                        <span th:text="${role.tenHienThi}">Vai trò</span>
+                                        <small class="text-muted" th:text="${role.moTa}">Mô tả</small>
+                                    </label>
+                                </th:block>
+                            </div>
+                            <small class="text-muted">Bấm vào từng nút để bật hoặc tắt vai trò cho tài khoản.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button th:if="${session.user != null and (session.user.hasPermission('ACCOUNT_CREATE') or session.user.hasPermission('ACCOUNT_UPDATE'))}"
+                                type="submit" class="btn btn-primary">Lưu thông tin</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            var myModal = new bootstrap.Modal(document.getElementById('userModal'));
+            const userForm = document.getElementById('userForm');
+            const isSuperAdmin = userForm.dataset.isSuperAdmin === 'true';
+            const currentUserId = userForm.dataset.currentUserId ? parseInt(userForm.dataset.currentUserId) : null;
+            const defaultUserRoleId = userForm.dataset.defaultUserRoleId ? String(userForm.dataset.defaultUserRoleId) : null;
+            const roleInputs = Array.from(document.querySelectorAll('.role-input'));
+
+            const setSelectedRoles = (roles) => {
+                const selectedRoles = Array.isArray(roles) ? roles.map(String) : [];
+                roleInputs.forEach(input => {
+                    input.checked = selectedRoles.includes(input.value);
+                });
+            };
+
+            const setRoleInputsDisabled = (disabled) => {
+                roleInputs.forEach(input => {
+                    input.disabled = disabled;
+                });
+            };
+             
+            if (id) {
+                document.getElementById('modalTitle').innerText = 'Cập nhật tài khoản';
+                document.getElementById('passwordGroup').style.display = 'none';
+                document.querySelector('input[name="matKhau"]').removeAttribute('required');
+                
+                document.getElementById('username').setAttribute('readonly', true);
+                document.getElementById('usernameNote').style.display = 'block';
+
+                fetch('/admin/accounts/api/' + id)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('userId').value = data.maTaiKhoan;
+                        document.getElementById('username').value = data.tenDangNhap;
+                        document.getElementById('fullname').value = data.hoTen;
+                        document.getElementById('email').value = data.email;
+                        document.getElementById('phone').value = data.soDienThoai;
+                        setSelectedRoles(data.roleIds);
+                        const editingSelf = currentUserId !== null && Number(data.maTaiKhoan) === currentUserId;
+                        setRoleInputsDisabled(!isSuperAdmin || editingSelf);
+                        myModal.show();
+                    })
+                    .catch(error => alert('Lỗi tải dữ liệu!'));
+            } else {
+
+                document.getElementById('modalTitle').innerText = 'Thêm tài khoản mới';
+                document.getElementById('userId').value = ''; 
+                userForm.reset();
+                
+                document.getElementById('passwordGroup').style.display = 'block';
+                document.querySelector('input[name="matKhau"]').setAttribute('required', true);
+                
+                document.getElementById('username').removeAttribute('readonly');
+                document.getElementById('usernameNote').style.display = 'none';
+                if (!isSuperAdmin) {
+                    setSelectedRoles(defaultUserRoleId ? [defaultUserRoleId] : []);
+                    setRoleInputsDisabled(true);
+                } else {
+                    setSelectedRoles(defaultUserRoleId ? [defaultUserRoleId] : []);
+                    setRoleInputsDisabled(false);
+                }
+                 
+                myModal.show();
+            }
+        }
+    </script>
+
+</body>
+</html>

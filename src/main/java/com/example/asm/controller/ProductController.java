@@ -40,9 +40,19 @@ public class ProductController {
             @RequestParam(value = "cid", required = false) Optional<Integer> cid,
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "price", required = false) List<String> prices,
-            @RequestParam(value = "sort", required = false, defaultValue = "newest") String sort) {
+            @RequestParam(value = "sort", required = false, defaultValue = "newest") String sort,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "12") int size) {
         List<String> selectedPrices = prices != null ? prices : new ArrayList<>();
-        List<MoHinh> items = productService.findByFilters(cid, keyword, selectedPrices, sort);
+        List<MoHinh> allItems = productService.findByFilters(cid, keyword, selectedPrices, sort);
+        int pageSize = Math.max(1, Math.min(size, 48));
+        int totalItems = allItems.size();
+        int totalPages = totalItems == 0 ? 0 : (int) Math.ceil((double) totalItems / pageSize);
+        int currentPage = totalPages == 0 ? 0 : Math.max(0, Math.min(page, totalPages - 1));
+        int fromIndex = totalItems == 0 ? 0 : currentPage * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<MoHinh> items = totalItems == 0 ? List.of() : allItems.subList(fromIndex, toIndex);
+
         Map<String, Long> displayPrices = new HashMap<>();
         Map<String, Integer> defaultVariantIds = new HashMap<>();
         for (MoHinh item : items) {
@@ -57,6 +67,12 @@ public class ProductController {
         model.addAttribute("selectedCid", cid.orElse(null));
         model.addAttribute("selectedKeyword", keyword);
         model.addAttribute("selectedSort", sort);
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("totalItems", totalItems);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("startItem", totalItems == 0 ? 0 : fromIndex + 1);
+        model.addAttribute("endItem", toIndex);
         return "product/list";
     }
     

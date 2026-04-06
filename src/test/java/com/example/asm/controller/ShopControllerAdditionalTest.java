@@ -34,13 +34,22 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 class ShopControllerAdditionalTest {
 
     @Test
-    void cartViewShouldRedirectWhenNotLogin() {
+    void cartViewShouldRenderGuestCartWhenNotLogin() {
         CartController controller = new CartController();
         AuthService auth = mock(AuthService.class);
+        CartService cart = mock(CartService.class);
         ReflectionTestUtils.setField(controller, "authService", auth);
-        when(auth.isLogin()).thenReturn(false);
+        ReflectionTestUtils.setField(controller, "cartService", cart);
+        when(auth.getUser()).thenReturn(null);
+        when(cart.getCart(null)).thenReturn(List.of());
+        when(cart.getAmount(null)).thenReturn(0L);
 
-        assertThat(controller.view(new ExtendedModelMap())).isEqualTo("redirect:/auth/login");
+        Model model = new ExtendedModelMap();
+        String view = controller.view(model);
+
+        assertThat(view).isEqualTo("fragments/cart");
+        assertThat(model.getAttribute("cart")).isEqualTo(List.of());
+        assertThat(model.getAttribute("amount")).isEqualTo(0L);
     }
 
     @Test
@@ -157,6 +166,29 @@ class ShopControllerAdditionalTest {
         ProductController controller = new ProductController();
         String view = controller.search("gundam hg");
         assertThat(view).isEqualTo("redirect:/product/list?keyword=gundam+hg");
+    }
+
+    @Test
+    void productListShouldPaginateFilteredItems() {
+        ProductController controller = new ProductController();
+        ProductService productService = mock(ProductService.class);
+        ReflectionTestUtils.setField(controller, "productService", productService);
+
+        List<MoHinh> products = java.util.stream.IntStream.rangeClosed(1, 13)
+                .mapToObj(i -> MoHinh.builder().maMoHinh("MH" + i).tenMoHinh("Toy " + i).build())
+                .toList();
+        when(productService.findByFilters(Optional.empty(), "toy", List.of(), "newest")).thenReturn(products);
+
+        Model model = new ExtendedModelMap();
+        String view = controller.list(model, Optional.empty(), "toy", null, "newest", 1, 12);
+
+        assertThat(view).isEqualTo("product/list");
+        assertThat((List<?>) model.getAttribute("items")).hasSize(1);
+        assertThat(model.getAttribute("totalItems")).isEqualTo(13);
+        assertThat(model.getAttribute("totalPages")).isEqualTo(2);
+        assertThat(model.getAttribute("currentPage")).isEqualTo(1);
+        assertThat(model.getAttribute("startItem")).isEqualTo(13);
+        assertThat(model.getAttribute("endItem")).isEqualTo(13);
     }
 
     @Test

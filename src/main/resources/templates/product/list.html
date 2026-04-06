@@ -15,6 +15,7 @@
                     </div>
                     <div class="card-body">
                         <form th:action="@{/product/list}" method="get">
+                            <input type="hidden" name="size" th:value="${pageSize}">
                             <h6 class="fw-bold mt-2">Từ khóa</h6>
                             <input type="text" class="form-control form-control-sm" name="keyword"
                                    th:value="${selectedKeyword}" placeholder="Tên hàng hoặc mã hàng">
@@ -81,7 +82,15 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded shadow-sm flex-wrap gap-2">
-                    <span class="fw-bold">Hiển thị <span class="text-main" th:text="${items.size()}">0</span> đồ chơi</span>
+                    <span class="fw-bold">
+                        Hiển thị
+                        <span class="text-main" th:text="${startItem}">0</span>
+                        -
+                        <span class="text-main" th:text="${endItem}">0</span>
+                        /
+                        <span class="text-main" th:text="${totalItems}">0</span>
+                        đồ chơi
+                    </span>
                     <span class="small text-muted" th:if="${selectedKeyword != null and !selectedKeyword.isEmpty()}"
                           th:text="'Từ khóa: ' + ${selectedKeyword}"></span>
                 </div>
@@ -138,6 +147,29 @@
                 <div th:if="${items.size() == 0}" class="text-center py-5">
                     <p class="text-muted mt-3">Không tìm thấy đồ chơi nào.</p>
                 </div>
+
+                <nav th:if="${totalPages > 1}" aria-label="Điều hướng phân trang sản phẩm" class="mt-4">
+                    <ul class="pagination justify-content-center flex-wrap gap-1">
+                        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link"
+                               th:href="@{/product/list(page=${currentPage - 1}, size=${pageSize}, cid=${selectedCid}, keyword=${selectedKeyword}, sort=${selectedSort}, price=${selectedPrices})}">
+                                <i class="fas fa-chevron-left me-1"></i> Trước
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${currentPage == i ? 'active' : ''}">
+                            <a class="page-link"
+                               th:text="${i + 1}"
+                               th:href="@{/product/list(page=${i}, size=${pageSize}, cid=${selectedCid}, keyword=${selectedKeyword}, sort=${selectedSort}, price=${selectedPrices})}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage + 1 >= totalPages ? 'disabled' : ''}">
+                            <a class="page-link"
+                               th:href="@{/product/list(page=${currentPage + 1}, size=${pageSize}, cid=${selectedCid}, keyword=${selectedKeyword}, sort=${selectedSort}, price=${selectedPrices})}">
+                                Sau <i class="fas fa-chevron-right ms-1"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </main>

@@ -47,14 +47,11 @@ Nen them them:
 - `PAYMENT_QR_ACQ_NAME`
 - `PAYMENT_QR_TEMPLATE`
 
-Neu dung dang nhap Google, them dung ten bien sau:
-
-- `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID`
-- `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET`
 - `JAVA_TOOL_OPTIONS`
 - `SERVER_TOMCAT_THREADS_MAX`
 - `SERVER_TOMCAT_THREADS_MIN_SPARE`
 - `SERVER_TOMCAT_MAX_CONNECTIONS`
+- `SERVER_TOMCAT_ACCEPT_COUNT`
 - `SERVER_TOMCAT_PROCESSOR_CACHE`
 
 ## 5. Cau hinh luu anh de khong bi mat sau moi lan redeploy
@@ -67,17 +64,7 @@ Neu ban co upload anh tu trang admin, can gan `Volume`.
 
 Neu khong gan volume, anh upload local se bi mat sau khi redeploy.
 
-## 6. Cau hinh Google Login
-
-Neu co dung Google Login:
-
-1. Mo Google Cloud Console.
-2. Vao OAuth Client dang dung.
-3. Them Authorized redirect URI:
-   - `https://<ten-domain-railway-cua-ban>/login/oauth2/code/google`
-4. Luu lai.
-
-## 7. Kiem tra sau deploy
+## 6. Kiem tra sau deploy
 
 Sau khi deploy xanh, mo cac URL sau:
 
@@ -89,29 +76,28 @@ Sau khi deploy xanh, mo cac URL sau:
 
 Neu dang nhap admin va upload anh duoc, service da o muc co the dung that.
 
-## 8. Cau hinh toi uu RAM cho goi 1 GB
+## 7. Cau hinh toi uu RAM cho goi 1 GB
 
-Dat cac bien sau trong Railway:
+Repo da ep gioi han JVM trong `railway.json`. Neu muon dat bang Railway Variables cho moi truong khac, dung bo bien sau:
 
-- `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=65 -XX:InitialRAMPercentage=25 -XX:MaxMetaspaceSize=192m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError`
-- `DB_MAX_POOL_SIZE=3`
+- `JAVA_TOOL_OPTIONS=-Xms64m -Xmx512m -Xss512k -XX:MaxMetaspaceSize=192m -XX:ReservedCodeCacheSize=64m -XX:MaxDirectMemorySize=64m -XX:+UseSerialGC -XX:ActiveProcessorCount=1 -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError`
+- `DB_MAX_POOL_SIZE=2`
 - `DB_MIN_IDLE=0`
-- `SERVER_TOMCAT_THREADS_MAX=30`
-- `SERVER_TOMCAT_THREADS_MIN_SPARE=5`
-- `SERVER_TOMCAT_MAX_CONNECTIONS=200`
-- `SERVER_TOMCAT_PROCESSOR_CACHE=20`
+- `SERVER_TOMCAT_THREADS_MAX=20`
+- `SERVER_TOMCAT_THREADS_MIN_SPARE=2`
+- `SERVER_TOMCAT_MAX_CONNECTIONS=100`
+- `SERVER_TOMCAT_ACCEPT_COUNT=20`
+- `SERVER_TOMCAT_PROCESSOR_CACHE=10`
 
 Ly do:
 
 - Heap Java khong duoc an het 1 GB RAM, tranh bi Railway kill vi vuot memory.
 - Tomcat mac dinh cho toi 200 worker threads, qua du voi shop nho va ton RAM.
-- Pool ket noi database 3 connection la du cho luong truy cap nho.
+- Pool ket noi database 2 connection la du cho luong truy cap nho.
 
-## 9. Loi hay gap
+## 8. Loi hay gap
 
 - Build loi dependency Spring milestone:
   - Repo da duoc bo sung `spring-milestones` trong `pom.xml`. Neu van loi, thu `Redeploy` lai.
-- Login Google khong hien:
-  - Kiem tra lai 2 bien `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_*`.
 - Anh bi mat sau redeploy:
   - Kiem tra volume co mount vao `/app/data` va `APP_STORAGE_UPLOAD_ROOT` da la `/app/data/uploads`.

@@ -18,7 +18,6 @@ public class AuthController {
     @GetMapping({"/admin/login", "/auth/login"})
     public String form(@RequestParam(value = "success", required = false) Boolean success,
                        @RequestParam(value = "logout", required = false) Boolean logout,
-                       @RequestParam(value = "oauthError", required = false) Boolean oauthError,
                        HttpSession session,
                        Model model) {
         TaiKhoan currentUser = authService.getUser();
@@ -33,10 +32,6 @@ public class AuthController {
         if (Boolean.TRUE.equals(success)) {
             model.addAttribute("successMessage", "Tài khoản đã được tạo. Bạn có thể đăng nhập quản trị nếu tài khoản được cấp quyền.");
         }
-        if (Boolean.TRUE.equals(oauthError)) {
-            model.addAttribute("message", "Đăng nhập Google không còn được bật trên giao diện hiện tại.");
-        }
-
         return "fragments/login";
     }
 

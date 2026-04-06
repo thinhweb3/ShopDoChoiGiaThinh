@@ -1,7 +1,6 @@
 package com.example.asm.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,7 +12,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
-import com.example.asm.config.GoogleOauth2SupportConfig.GoogleOauth2AccountService;
 import com.example.asm.entity.DonHang;
 import com.example.asm.entity.KhuyenMai;
 import com.example.asm.entity.TaiKhoan;
@@ -254,74 +252,6 @@ class UserFlowControllerTest {
         String view = controller.detail(10, new ExtendedModelMap());
 
         assertThat(view).isEqualTo("redirect:/order/list");
-    }
-
-    @Test
-    void googleLoginShouldMapExistingAccountByEmailIgnoringCase() {
-        var taiKhoanRepo = mock(com.example.asm.repository.TaiKhoanRepository.class);
-        AccountService accountService = mock(AccountService.class);
-        VaiTroService vaiTroService = mock(VaiTroService.class);
-        GoogleOauth2AccountService service = new GoogleOauth2AccountService(taiKhoanRepo, accountService, vaiTroService);
-        TaiKhoan existing = TaiKhoan.builder()
-                .maTaiKhoan(1)
-                .tenDangNhap("existing-user")
-                .email("user@gmail.com")
-                .trangThai(true)
-                .build();
-
-        when(taiKhoanRepo.findByEmailIgnoreCase("user@gmail.com")).thenReturn(Optional.of(existing));
-
-        TaiKhoan result = service.resolveUser("User@gmail.com", "Google User");
-
-        assertThat(result).isSameAs(existing);
-        verify(accountService, never()).save(any(TaiKhoan.class));
-    }
-
-    @Test
-    void googleLoginShouldCreateLocalAccountWhenEmailNotFound() {
-        var taiKhoanRepo = mock(com.example.asm.repository.TaiKhoanRepository.class);
-        AccountService accountService = mock(AccountService.class);
-        VaiTroService vaiTroService = mock(VaiTroService.class);
-        GoogleOauth2AccountService service = new GoogleOauth2AccountService(taiKhoanRepo, accountService, vaiTroService);
-        when(vaiTroService.getRequiredUserRole()).thenReturn(VaiTro.builder()
-                .maVaiTro(3)
-                .code(TaiKhoan.ROLE_USER)
-                .tenHienThi("User")
-                .moTa("Khách hàng")
-                .choPhepTruyCapAdmin(false)
-                .laVaiTroHeThong(true)
-                .build());
-
-        when(taiKhoanRepo.findByEmailIgnoreCase("new.user@gmail.com")).thenReturn(Optional.empty());
-        when(taiKhoanRepo.existsByTenDangNhap("new.user")).thenReturn(false);
-        when(accountService.encodePassword(anyString())).thenReturn("encoded-random");
-        when(accountService.save(any(TaiKhoan.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        TaiKhoan result = service.resolveUser("new.user@gmail.com", "New User");
-
-        assertThat(result.getTenDangNhap()).isEqualTo("new.user");
-        assertThat(result.getEmail()).isEqualTo("new.user@gmail.com");
-        assertThat(result.getHoTen()).isEqualTo("New User");
-        assertThat(result.getMatKhau()).isEqualTo("encoded-random");
-        assertThat(result.getTrangThai()).isTrue();
-    }
-
-    @Test
-    void googleLoginShouldRejectLockedLocalAccount() {
-        var taiKhoanRepo = mock(com.example.asm.repository.TaiKhoanRepository.class);
-        AccountService accountService = mock(AccountService.class);
-        VaiTroService vaiTroService = mock(VaiTroService.class);
-        GoogleOauth2AccountService service = new GoogleOauth2AccountService(taiKhoanRepo, accountService, vaiTroService);
-        TaiKhoan locked = TaiKhoan.builder()
-                .email("locked@gmail.com")
-                .trangThai(false)
-                .build();
-
-        when(taiKhoanRepo.findByEmailIgnoreCase("locked@gmail.com")).thenReturn(Optional.of(locked));
-
-        assertThatThrownBy(() -> service.resolveUser("locked@gmail.com", "Locked User"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("bị khóa");
     }
 
     @Test

@@ -29,8 +29,8 @@ DB_URL=jdbc:postgresql://aws-0-REGION.pooler.supabase.com:5432/postgres?sslmode=
 DB_USERNAME=postgres.PROJECT_REF
 DB_PASSWORD=SUPABASE_DB_PASSWORD
 DB_DRIVER=org.postgresql.Driver
-DB_MAX_POOL_SIZE=5
-DB_MIN_IDLE=1
+DB_MAX_POOL_SIZE=2
+DB_MIN_IDLE=0
 ```
 
 ## Giai thich nhanh
@@ -78,4 +78,4 @@ Nhap theo thu tu:
 - Kiem tra `DB_URL` da co `sslmode=require` chua.
 - Kiem tra `DB_USERNAME` co dang `postgres.PROJECT_REF` khong.
 - Kiem tra password la database password, khong phai API key.
-- Giam `DB_MAX_POOL_SIZE` xuong `3` neu project free tier bi het connection.
+- Giu `DB_MAX_POOL_SIZE=2` cho Railway 1GB va Supabase free tier.

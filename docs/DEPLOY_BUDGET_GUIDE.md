@@ -44,6 +44,7 @@ Toi thieu can co:
 - `STORE_CONTACT_NAME`
 - `STORE_CONTACT_PHONE`
 - `STORE_CONTACT_ZALO`
+- `STORE_CONTACT_ADDRESS`
 
 ## Cach xu ly anh toi uu chi phi
 

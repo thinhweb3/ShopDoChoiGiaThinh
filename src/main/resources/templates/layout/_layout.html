@@ -15,7 +15,8 @@
     <div class="top-bar py-2">
         <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div class="small text-muted">
-                <i class="fas fa-location-dot text-main me-1"></i> Hồ Chí Minh, Việt Nam
+                <i class="fas fa-location-dot text-main me-1"></i>
+                <span th:text="${storeContactAddress}">927 Nguyễn Ảnh Thủ, Trung Mỹ Tây, TPHCM</span>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-3 small">
                 <a class="text-dark text-decoration-none fw-semibold" th:href="'tel:' + ${storeContactPhoneDigits}">
@@ -31,8 +32,8 @@
     </div>
 
     <div class="main-header sticky-top shadow-sm">
-        <div class="container py-3">
-            <div class="d-flex flex-column flex-xl-row align-items-xl-center gap-3">
+        <div class="container py-3 header-shell">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
                 <a href="/home/index" class="brand-link text-decoration-none d-flex align-items-center gap-3">
                     <div class="text-main display-6"><i class="fas fa-store"></i></div>
                     <div>
@@ -46,48 +47,66 @@
                     <button type="submit" class="px-3"><i class="fas fa-search"></i></button>
                 </form>
 
-                <div class="shop-main-nav d-flex align-items-center justify-content-xl-end gap-2 flex-nowrap overflow-auto">
-                    <div class="dropdown flex-shrink-0">
-                        <button class="category-btn dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-bars me-1"></i> Loại hàng
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/product/list">Tất cả đồ chơi</a></li>
-                            <li th:each="c : ${cates}">
-                                <a class="dropdown-item" th:href="@{|/product/list-by-category/${c.maDanhMuc}|}" th:text="${c.tenDanhMuc}"></a>
-                            </li>
-                        </ul>
-                    </div>
-                    <a href="/product/list" class="shop-nav-link btn btn-outline-dark rounded-pill px-3">
-                        <i class="fas fa-box-open me-1"></i> Xem đồ chơi
-                    </a>
-                    <a href="/cart/view" class="shop-nav-link btn btn-outline-success rounded-pill px-3 position-relative">
-                        <i class="fas fa-cart-shopping me-1"></i> Giỏ hàng
-                        <span th:if="${cartCount > 0}"
-                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                              th:text="${cartCount}">0</span>
-                    </a>
-                    <a th:if="${currentUser == null}" href="/auth/login" class="shop-nav-link btn btn-dark rounded-pill px-3">
-                        <i class="fas fa-right-to-bracket me-1"></i> Đăng nhập
-                    </a>
-                    <a th:if="${currentUser == null}" href="/account/sign-up" class="shop-nav-link btn btn-outline-primary rounded-pill px-3">
-                        <i class="fas fa-user-plus me-1"></i> Đăng ký
-                    </a>
-                    <div th:if="${currentUser != null}" class="dropdown flex-shrink-0">
-                        <button class="btn btn-dark rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user me-1"></i>
-                            <span th:text="${currentUser.hoTen != null ? currentUser.hoTen : currentUser.tenDangNhap}">Tài khoản</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/account/profile">Thông tin tài khoản</a></li>
-                            <li><a class="dropdown-item" href="/order/list">Đơn hàng của tôi</a></li>
-                            <li><a class="dropdown-item" href="/favorite/view">Yêu thích</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="/auth/logoff">Đăng xuất</a></li>
-                        </ul>
-                    </div>
-                </div>
+                <button class="navbar-toggler shop-nav-toggler d-xl-none" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#shopNavbar"
+                        aria-controls="shopNavbar" aria-expanded="false" aria-label="Mở menu">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
+
+            <nav class="navbar navbar-expand-xl shop-feature-navbar p-0 mt-3" aria-label="Điều hướng chính">
+                <div class="collapse navbar-collapse" id="shopNavbar">
+                    <ul class="navbar-nav shop-main-nav align-items-xl-center gap-2">
+                        <li class="nav-item dropdown">
+                            <button class="nav-action category-btn dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-bars me-1"></i> Loại hàng
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/product/list">Tất cả đồ chơi</a></li>
+                                <li th:each="c : ${cates}">
+                                    <a class="dropdown-item" th:href="@{|/product/list-by-category/${c.maDanhMuc}|}" th:text="${c.tenDanhMuc}"></a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/product/list" class="shop-nav-link btn btn-outline-dark rounded-pill px-3">
+                                <i class="fas fa-box-open me-1"></i> Xem đồ chơi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/cart/view" class="shop-nav-link btn btn-outline-success rounded-pill px-3 position-relative">
+                                <i class="fas fa-cart-shopping me-1"></i> Giỏ hàng
+                                <span th:if="${cartCount > 0}"
+                                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                      th:text="${cartCount}">0</span>
+                            </a>
+                        </li>
+                        <li th:if="${currentUser == null}" class="nav-item">
+                            <a href="/auth/login" class="shop-nav-link btn btn-dark rounded-pill px-3">
+                                <i class="fas fa-right-to-bracket me-1"></i> Đăng nhập
+                            </a>
+                        </li>
+                        <li th:if="${currentUser == null}" class="nav-item">
+                            <a href="/account/sign-up" class="shop-nav-link btn btn-outline-primary rounded-pill px-3">
+                                <i class="fas fa-user-plus me-1"></i> Đăng ký
+                            </a>
+                        </li>
+                        <li th:if="${currentUser != null}" class="nav-item dropdown">
+                            <button class="shop-nav-link btn btn-dark rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>
+                                <span th:text="${currentUser.hoTen != null ? currentUser.hoTen : currentUser.tenDangNhap}">Tài khoản</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/account/profile">Thông tin tài khoản</a></li>
+                                <li><a class="dropdown-item" href="/order/list">Đơn hàng của tôi</a></li>
+                                <li><a class="dropdown-item" href="/favorite/view">Yêu thích</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="/auth/logoff">Đăng xuất</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
         </div>
     </div>
 
@@ -110,6 +129,10 @@
                     <p class="mb-2 small">
                         <i class="fas fa-phone me-2"></i>
                         <a class="text-white text-decoration-none" th:href="'tel:' + ${storeContactPhoneDigits}" th:text="${storeContactPhone}">0900000000</a>
+                    </p>
+                    <p class="mb-2 small">
+                        <i class="fas fa-location-dot me-2"></i>
+                        <span th:text="${storeContactAddress}">927 Nguyễn Ảnh Thủ, Trung Mỹ Tây, TPHCM</span>
                     </p>
                     <p class="mb-0 small">
                         <i class="fas fa-comment-dots me-2"></i>

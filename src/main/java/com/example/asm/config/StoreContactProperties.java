@@ -10,6 +10,7 @@ public class StoreContactProperties {
     private String name = "Gia Thinh Shop";
     private String phone = "0900000000";
     private String zalo = "0900000000";
+    private String address = "927 Nguyễn Ảnh Thủ, Trung Mỹ Tây, TPHCM";
 
     public String getName() {
         return name;
@@ -33,6 +34,14 @@ public class StoreContactProperties {
 
     public void setZalo(String zalo) {
         this.zalo = zalo;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getPhoneDigits() {

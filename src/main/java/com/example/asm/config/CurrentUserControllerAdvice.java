@@ -58,6 +58,11 @@ public class CurrentUserControllerAdvice {
         return storeContactProperties.getZaloLink();
     }
 
+    @ModelAttribute("storeContactAddress")
+    public String storeContactAddress() {
+        return storeContactProperties.getAddress();
+    }
+
     @ModelAttribute("cartCount")
     public int cartCount() {
         return cartService.getCount(authService.getUser());

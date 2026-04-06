@@ -35,6 +35,7 @@ Vao tab `Variables` cua service va them toi thieu:
 - `STORE_CONTACT_NAME`
 - `STORE_CONTACT_PHONE`
 - `STORE_CONTACT_ZALO`
+- `STORE_CONTACT_ADDRESS`
 
 Nen them them:
 

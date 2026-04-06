@@ -1,22 +1,22 @@
 :root {
-    --main-color: #0f67b1;
-    --main-color-rgb: 15, 103, 177;
-    --main-dark: #0a446f;
-    --main-soft: #e8f4ff;
-    --accent-color: #f3c86b;
-    --accent-color-rgb: 243, 200, 107;
-    --accent-dark: #9b6d14;
-    --accent-soft: #fff5da;
-    --bg-gray: #f4f9ff;
-    --bg-warm: #fffaf0;
+    --main-color: #8a350f;
+    --main-color-rgb: 138, 53, 15;
+    --main-dark: #5f210b;
+    --main-soft: #fff2cf;
+    --accent-color: #ffb51f;
+    --accent-color-rgb: 255, 181, 31;
+    --accent-dark: #7c2e0d;
+    --accent-soft: #cceefa;
+    --bg-gray: #ecf9fe;
+    --bg-warm: #fff4d1;
     --text-ink: #1f2d3d;
     --dark-green: var(--main-dark);
     --bs-primary: var(--main-color);
     --bs-primary-rgb: var(--main-color-rgb);
     --bs-success: var(--main-color);
     --bs-success-rgb: var(--main-color-rgb);
-    --bs-info: #59add7;
-    --bs-info-rgb: 89, 173, 215;
+    --bs-info: #1399cf;
+    --bs-info-rgb: 19, 153, 207;
     --bs-warning: var(--accent-color);
     --bs-warning-rgb: var(--accent-color-rgb);
 }
@@ -33,7 +33,7 @@ body {
 .text-main { color: var(--main-color) !important; }
 
 .btn-main {
-    background: linear-gradient(135deg, var(--main-color) 0%, #1780cf 100%);
+    background: linear-gradient(135deg, var(--main-color) 0%, #c75514 100%);
     color: white;
     border: none;
     box-shadow: 0 12px 24px rgba(var(--main-color-rgb), 0.22);
@@ -67,6 +67,15 @@ body {
 
 .brand-link:hover {
     color: inherit;
+}
+
+.brand-logo-img {
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    object-fit: contain;
+    background: #cceefa;
+    box-shadow: 0 10px 20px rgba(var(--main-color-rgb), 0.16);
 }
 
 .shop-feature-navbar {
@@ -125,7 +134,7 @@ body {
 .quick-action-cart {
     border: 1px solid rgba(var(--main-color-rgb), 0.18);
     color: white;
-    background: linear-gradient(135deg, var(--main-color) 0%, #1780cf 100%);
+    background: linear-gradient(135deg, var(--main-color) 0%, #c75514 100%);
 }
 
 .quick-action-cart:hover {
@@ -144,7 +153,7 @@ body {
 }
 .search-box button {
     border-radius: 0 999px 999px 0;
-    background: linear-gradient(135deg, var(--main-color) 0%, #1780cf 100%);
+    background: linear-gradient(135deg, var(--main-color) 0%, #c75514 100%);
     color: white;
     border: none;
 }
@@ -187,7 +196,7 @@ body {
 
 .banner-qc {
     background:
-        linear-gradient(120deg, rgba(10, 68, 111, 0.96) 0%, rgba(15, 103, 177, 0.88) 58%, rgba(243, 200, 107, 0.72) 100%),
+        linear-gradient(120deg, rgba(95, 33, 11, 0.96) 0%, rgba(138, 53, 15, 0.88) 58%, rgba(255, 181, 31, 0.72) 100%),
         url('/images/banner-bg.jpg') no-repeat center center / cover;
     height: 250px;
     position: relative;
@@ -200,7 +209,7 @@ body {
 .banner-overlay {
     background:
         radial-gradient(circle at top right, rgba(var(--accent-color-rgb), 0.35), transparent 28%),
-        linear-gradient(120deg, rgba(10, 68, 111, 0.58), rgba(15, 103, 177, 0.26));
+        linear-gradient(120deg, rgba(95, 33, 11, 0.58), rgba(138, 53, 15, 0.26));
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
 }
@@ -689,7 +698,7 @@ body {
 
 .bg-info,
 .badge.bg-info {
-    background-color: #59add7 !important;
+    background-color: #1399cf !important;
 }
 
 .bg-primary-subtle {

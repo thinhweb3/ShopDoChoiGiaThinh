@@ -3,7 +3,6 @@ package com.example.asm.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -11,7 +10,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +25,6 @@ import com.example.asm.service.AuthService;
 import com.example.asm.service.CartService;
 import com.example.asm.service.OrderDetailService;
 import com.example.asm.service.OrderService;
-import com.example.asm.service.PaymentInboxService;
 import com.example.asm.service.VaiTroService;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
@@ -257,73 +254,6 @@ class UserFlowControllerTest {
         String view = controller.detail(10, new ExtendedModelMap());
 
         assertThat(view).isEqualTo("redirect:/order/list");
-    }
-
-    @Test
-    void orderConfirmPaymentShouldUpdateOrderWhenGmailMatchExists() {
-        OrderController controller = new OrderController();
-        AuthService authService = mock(AuthService.class);
-        OrderService orderService = mock(OrderService.class);
-        PaymentInboxService paymentInboxService = mock(PaymentInboxService.class);
-        RedirectAttributes ra = new RedirectAttributesModelMap();
-
-        TaiKhoan user = TaiKhoan.builder().maTaiKhoan(10).build();
-        DonHang order = DonHang.builder()
-                .maDonHang(88)
-                .taiKhoan(user)
-                .tongTien(230_000L)
-                .trangThaiThanhToan("Chờ thanh toán")
-                .build();
-
-        ReflectionTestUtils.setField(controller, "authService", authService);
-        ReflectionTestUtils.setField(controller, "orderService", orderService);
-        ReflectionTestUtils.setField(controller, "paymentInboxService", paymentInboxService);
-        when(authService.isLogin()).thenReturn(true);
-        when(authService.getUser()).thenReturn(user);
-        when(orderService.findById(88)).thenReturn(order);
-        when(paymentInboxService.findMatchingPaymentEmail(order))
-                .thenReturn(Optional.of(new PaymentInboxService.PaymentEmailMatch(
-                        "Bao co DH88",
-                        "bank@example.com",
-                        LocalDateTime.of(2026, 3, 29, 12, 0))));
-
-        String view = controller.confirmPayment(88, ra);
-
-        assertThat(view).isEqualTo("redirect:/order/success");
-        verify(orderService).confirmPayment(88, 10);
-        assertThat(ra.getFlashAttributes().get("paymentSuccess").toString())
-                .contains("Thanh toán chuyển khoản đã được xác nhận");
-    }
-
-    @Test
-    void orderConfirmPaymentShouldReturnToQrWhenGmailMatchMissing() {
-        OrderController controller = new OrderController();
-        AuthService authService = mock(AuthService.class);
-        OrderService orderService = mock(OrderService.class);
-        PaymentInboxService paymentInboxService = mock(PaymentInboxService.class);
-        RedirectAttributes ra = new RedirectAttributesModelMap();
-
-        TaiKhoan user = TaiKhoan.builder().maTaiKhoan(10).build();
-        DonHang order = DonHang.builder()
-                .maDonHang(89)
-                .taiKhoan(user)
-                .tongTien(330_000L)
-                .trangThaiThanhToan("Chờ thanh toán")
-                .build();
-
-        ReflectionTestUtils.setField(controller, "authService", authService);
-        ReflectionTestUtils.setField(controller, "orderService", orderService);
-        ReflectionTestUtils.setField(controller, "paymentInboxService", paymentInboxService);
-        when(authService.isLogin()).thenReturn(true);
-        when(authService.getUser()).thenReturn(user);
-        when(orderService.findById(89)).thenReturn(order);
-        when(paymentInboxService.findMatchingPaymentEmail(order)).thenReturn(Optional.empty());
-
-        String view = controller.confirmPayment(89, ra);
-
-        assertThat(view).isEqualTo("redirect:/order/payment-qr/89");
-        assertThat(ra.getFlashAttributes().get("message").toString()).contains("Chưa tìm thấy email báo có");
-        verify(orderService, never()).confirmPayment(anyInt(), anyInt());
     }
 
     @Test

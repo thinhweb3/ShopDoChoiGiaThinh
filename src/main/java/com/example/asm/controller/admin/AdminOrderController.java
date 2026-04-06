@@ -6,6 +6,7 @@ import com.example.asm.entity.TaiKhoan;
 import com.example.asm.security.RolePermission;
 import com.example.asm.repository.ChiTietDonHangRepository;
 import com.example.asm.repository.DonHangRepository;
+import com.example.asm.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,6 +39,9 @@ public class AdminOrderController {
 
     @Autowired
     private ChiTietDonHangRepository chiTietRepo;
+
+    @Autowired
+    private OrderService orderService;
 
     /**
      * Danh sách đơn hàng với phân trang, tìm kiếm, lọc
@@ -162,16 +166,19 @@ public class AdminOrderController {
                 return "redirect:/admin/orders";
             }
 
-            dh.setTrangThai(storedOrderStatus);
-            dh.setTrangThaiThanhToan(isCancelAction && !hasPermission(RolePermission.ORDER_CONFIRM.getCode())
+            String effectivePaymentStatus = isCancelAction && !hasPermission(RolePermission.ORDER_CONFIRM.getCode())
                     ? dh.getTrangThaiThanhToan()
-                    : storedPaymentStatus);
+                    : storedPaymentStatus;
+            boolean shouldConfirmPayment = !isPaid(dh.getTrangThaiThanhToan()) && isPaid(effectivePaymentStatus);
 
-            // Nếu hoàn thành -> cập nhật tồn kho
-            if ("Hoàn thành".equals(storedOrderStatus)) {
-                // Logic cập nhật kho sẽ xử lý ở đây
+            if (shouldConfirmPayment) {
+                orderService.confirmPayment(id);
+                dh = donHangRepo.findById(id).orElseThrow();
+            } else {
+                dh.setTrangThaiThanhToan(effectivePaymentStatus);
             }
 
+            dh.setTrangThai(storedOrderStatus);
             donHangRepo.save(dh);
             params.addFlashAttribute("message", "Cập nhật đơn hàng #" + id + " thành công!");
             params.addFlashAttribute("messageType", "success");
@@ -297,5 +304,9 @@ public class AdminOrderController {
         return "Đã thanh toán".equalsIgnoreCase(storedStatus) || "Đã nhận tiền".equalsIgnoreCase(storedStatus)
                 ? "Đã nhận tiền"
                 : "Chưa nhận tiền";
+    }
+
+    private boolean isPaid(String status) {
+        return "Đã thanh toán".equalsIgnoreCase(status) || "Đã nhận tiền".equalsIgnoreCase(status);
     }
 }

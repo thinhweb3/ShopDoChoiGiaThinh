@@ -8,7 +8,6 @@ import com.example.asm.service.AuthService;
 import com.example.asm.service.CartService;
 import com.example.asm.service.OrderDetailService;
 import com.example.asm.service.OrderService;
-import com.example.asm.service.PaymentInboxService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +26,6 @@ public class OrderController {
     @Autowired AuthService authService;
     @Autowired OrderService orderService;
     @Autowired OrderDetailService orderDetailService;
-    @Autowired PaymentInboxService paymentInboxService;
     @Autowired KhuyenMaiRepository kmRepo;
 
     @Value("${order.shipping-fee:30000}") long shippingFee;
@@ -217,66 +215,6 @@ public class OrderController {
         model.addAttribute("qrAccount", qrAccount);
         model.addAttribute("transferContent", "DH" + order.getMaDonHang());
         return "fragments/payment-qr";
-    }
-
-    public String confirmPayment(@PathVariable("id") Integer id, RedirectAttributes params) {
-        try {
-            TaiKhoan user = authService.getUser();
-            DonHang order = orderService.findById(id);
-            if (order == null || user == null || order.getTaiKhoan() == null
-                    || !order.getTaiKhoan().getMaTaiKhoan().equals(user.getMaTaiKhoan())) {
-                params.addFlashAttribute("message", "Đơn hàng không tồn tại hoặc không thuộc tài khoản của bạn.");
-                return "redirect:/order/list";
-            }
-            if ("Đã thanh toán".equals(order.getTrangThaiThanhToan())) {
-                return "redirect:/order/success";
-            }
-
-            var match = paymentInboxService.findMatchingPaymentEmail(order);
-            if (match.isEmpty()) {
-                params.addFlashAttribute("message",
-                        "Chưa tìm thấy email báo có khớp với mã chuyển khoản DH" + order.getMaDonHang()
-                                + " và số tiền " + order.getTongTien() + "đ. Hãy đợi email ngân hàng rồi thử lại.");
-                return "redirect:/order/payment-qr/" + id;
-            }
-
-            orderService.confirmPayment(id, user.getMaTaiKhoan());
-            params.addFlashAttribute("paymentSuccess", "Thanh toán chuyển khoản đã được xác nhận. " + match.get().toDisplayText());
-            return "redirect:/order/success";
-        } catch (Exception e) {
-            params.addFlashAttribute("message", e.getMessage());
-            return "redirect:/order/payment-qr/" + id;
-        }
-    }
-
-    @PostMapping("/confirm-payment/{id}")
-    public String confirmPayment(@PathVariable("id") Integer id, RedirectAttributes params, HttpSession session) {
-        try {
-            DonHang order = orderService.findById(id);
-            TaiKhoan user = authService.getUser();
-            if (!canAccessOrder(order, user, session)) {
-                params.addFlashAttribute("message", "Đơn hàng không tồn tại hoặc không thuộc phiên mua hàng hiện tại.");
-                return "redirect:/home/index";
-            }
-            if ("Đã thanh toán".equals(order.getTrangThaiThanhToan())) {
-                return "redirect:/order/success";
-            }
-
-            var match = paymentInboxService.findMatchingPaymentEmail(order);
-            if (match.isEmpty()) {
-                params.addFlashAttribute("message",
-                        "Chưa tìm thấy email báo có khớp với mã chuyển khoản DH" + order.getMaDonHang()
-                                + " và số tiền " + order.getTongTien() + "đ. Hãy đợi email ngân hàng rồi thử lại.");
-                return "redirect:/order/payment-qr/" + id;
-            }
-
-            orderService.confirmPayment(id);
-            params.addFlashAttribute("paymentSuccess", "Thanh toán chuyển khoản đã được xác nhận. " + match.get().toDisplayText());
-            return "redirect:/order/success";
-        } catch (Exception e) {
-            params.addFlashAttribute("message", e.getMessage());
-            return "redirect:/order/payment-qr/" + id;
-        }
     }
 
     @GetMapping("/success")

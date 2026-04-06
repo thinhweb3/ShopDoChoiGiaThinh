@@ -32,65 +32,59 @@
 
     <div class="main-header sticky-top shadow-sm">
         <div class="container py-3">
-            <div class="row align-items-center g-3">
-                <div class="col-lg-4 col-md-5">
-                    <a href="/home/index" class="text-decoration-none d-flex align-items-center gap-3">
-                        <div class="text-main display-6"><i class="fas fa-store"></i></div>
-                        <div>
-                            <h3 class="fw-bold text-dark m-0">Gia Thịnh Shop</h3>
-                            <small class="text-muted">Thế giới đồ chơi, đặt hàng nhanh và giao hàng toàn quốc</small>
-                        </div>
+            <div class="d-flex flex-column flex-xl-row align-items-xl-center gap-3">
+                <a href="/home/index" class="brand-link text-decoration-none d-flex align-items-center gap-3">
+                    <div class="text-main display-6"><i class="fas fa-store"></i></div>
+                    <div>
+                        <h3 class="fw-bold text-dark m-0">Gia Thịnh Shop</h3>
+                        <small class="text-muted">Thế giới đồ chơi, đặt hàng nhanh và giao hàng toàn quốc</small>
+                    </div>
+                </a>
+
+                <form action="/product/search" class="search-box d-flex flex-grow-1">
+                    <input class="form-control" type="text" name="keyword" placeholder="Tìm theo tên hàng hoặc mã hàng">
+                    <button type="submit" class="px-3"><i class="fas fa-search"></i></button>
+                </form>
+
+                <div class="shop-main-nav d-flex align-items-center justify-content-xl-end gap-2 flex-nowrap overflow-auto">
+                    <div class="dropdown flex-shrink-0">
+                        <button class="category-btn dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bars me-1"></i> Loại hàng
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/product/list">Tất cả đồ chơi</a></li>
+                            <li th:each="c : ${cates}">
+                                <a class="dropdown-item" th:href="@{|/product/list-by-category/${c.maDanhMuc}|}" th:text="${c.tenDanhMuc}"></a>
+                            </li>
+                        </ul>
+                    </div>
+                    <a href="/product/list" class="shop-nav-link btn btn-outline-dark rounded-pill px-3">
+                        <i class="fas fa-box-open me-1"></i> Xem đồ chơi
                     </a>
-                </div>
-
-                <div class="col-lg-5 col-md-7">
-                    <form action="/product/search" class="search-box d-flex">
-                        <input class="form-control" type="text" name="keyword" placeholder="Tìm theo tên hàng hoặc mã hàng">
-                        <button type="submit" class="px-3"><i class="fas fa-search"></i></button>
-                    </form>
-                </div>
-
-                <div class="col-lg-3 text-lg-end">
-                    <div class="d-flex justify-content-lg-end gap-2 flex-wrap">
-                        <div class="dropdown">
-                            <button class="category-btn dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-bars me-1"></i> Loại hàng
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/product/list">Tất cả đồ chơi</a></li>
-                                <li th:each="c : ${cates}">
-                                    <a class="dropdown-item" th:href="@{|/product/list-by-category/${c.maDanhMuc}|}" th:text="${c.tenDanhMuc}"></a>
-                                </li>
-                            </ul>
-                        </div>
-                        <a href="/product/list" class="btn btn-outline-dark rounded-pill px-3">
-                            <i class="fas fa-box-open me-1"></i> Xem đồ chơi
-                        </a>
-                        <a href="/cart/view" class="btn btn-outline-success rounded-pill px-3 position-relative">
-                            <i class="fas fa-cart-shopping me-1"></i> Giỏ hàng
-                            <span th:if="${cartCount > 0}"
-                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                  th:text="${cartCount}">0</span>
-                        </a>
-                        <a th:if="${currentUser == null}" href="/auth/login" class="btn btn-dark rounded-pill px-3">
-                            <i class="fas fa-right-to-bracket me-1"></i> Đăng nhập
-                        </a>
-                        <a th:if="${currentUser == null}" href="/account/sign-up" class="btn btn-outline-primary rounded-pill px-3">
-                            <i class="fas fa-user-plus me-1"></i> Đăng ký
-                        </a>
-                        <div th:if="${currentUser != null}" class="dropdown">
-                            <button class="btn btn-dark rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i>
-                                <span th:text="${currentUser.hoTen != null ? currentUser.hoTen : currentUser.tenDangNhap}">Tài khoản</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/account/profile">Thông tin tài khoản</a></li>
-                                <li><a class="dropdown-item" href="/order/list">Đơn hàng của tôi</a></li>
-                                <li><a class="dropdown-item" href="/favorite/view">Yêu thích</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="/auth/logoff">Đăng xuất</a></li>
-                            </ul>
-                        </div>
+                    <a href="/cart/view" class="shop-nav-link btn btn-outline-success rounded-pill px-3 position-relative">
+                        <i class="fas fa-cart-shopping me-1"></i> Giỏ hàng
+                        <span th:if="${cartCount > 0}"
+                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              th:text="${cartCount}">0</span>
+                    </a>
+                    <a th:if="${currentUser == null}" href="/auth/login" class="shop-nav-link btn btn-dark rounded-pill px-3">
+                        <i class="fas fa-right-to-bracket me-1"></i> Đăng nhập
+                    </a>
+                    <a th:if="${currentUser == null}" href="/account/sign-up" class="shop-nav-link btn btn-outline-primary rounded-pill px-3">
+                        <i class="fas fa-user-plus me-1"></i> Đăng ký
+                    </a>
+                    <div th:if="${currentUser != null}" class="dropdown flex-shrink-0">
+                        <button class="btn btn-dark rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>
+                            <span th:text="${currentUser.hoTen != null ? currentUser.hoTen : currentUser.tenDangNhap}">Tài khoản</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/account/profile">Thông tin tài khoản</a></li>
+                            <li><a class="dropdown-item" href="/order/list">Đơn hàng của tôi</a></li>
+                            <li><a class="dropdown-item" href="/favorite/view">Yêu thích</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="/auth/logoff">Đăng xuất</a></li>
+                        </ul>
                     </div>
                 </div>
             </div>

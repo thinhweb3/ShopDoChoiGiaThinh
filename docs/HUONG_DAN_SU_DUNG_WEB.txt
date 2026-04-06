@@ -104,10 +104,8 @@ http://localhost:8080
 
 - Thanh toán QR:
   - GET /order/payment-qr/{id}: tạo URL QR theo cấu hình.
-  - POST /order/confirm-payment/{id}:
-    - Kiểm tra đơn thuộc user.
-    - Kiểm tra tồn kho và trừ tồn.
-    - Cập nhật trạng thái thanh toán “Đã thanh toán”.
+  - Khách chuyển khoản theo mã QR và nội dung chuyển khoản.
+  - Admin tự kiểm tra giao dịch, sau đó cập nhật thanh toán trong trang quản trị đơn hàng.
 
 3.5 Đơn hàng, yêu thích, đánh giá, hồ sơ
 - Lịch sử đơn: GET /order/list

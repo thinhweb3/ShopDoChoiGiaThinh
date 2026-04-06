@@ -19,10 +19,16 @@ import com.example.asm.entity.MoHinh;
 import com.example.asm.entity.TaiKhoan;
 import com.example.asm.repository.ChiTietDonHangRepository;
 import com.example.asm.repository.DonHangRepository;
+import com.example.asm.security.RolePermission;
+import com.example.asm.security.SecurityAuthorityUtils;
+import com.example.asm.service.OrderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -110,6 +116,46 @@ class AdminOrderControllerTest {
 
         assertThat(view).isEqualTo("redirect:/admin/orders");
         assertThat(ra.getFlashAttributes().get("messageType")).isEqualTo("error");
+    }
+
+    @Test
+    void updateStatusShouldConfirmPaymentManuallyWhenAdminMarksPaid() {
+        AdminOrderController controller = new AdminOrderController();
+        DonHangRepository donHangRepo = mock(DonHangRepository.class);
+        OrderService orderService = mock(OrderService.class);
+        ReflectionTestUtils.setField(controller, "donHangRepo", donHangRepo);
+        ReflectionTestUtils.setField(controller, "orderService", orderService);
+
+        DonHang order = DonHang.builder()
+                .maDonHang(10)
+                .trangThai("Chờ xử lý")
+                .trangThaiThanhToan("Chờ thanh toán")
+                .build();
+        DonHang paidOrder = DonHang.builder()
+                .maDonHang(10)
+                .trangThai("Chờ xử lý")
+                .trangThaiThanhToan("Đã thanh toán")
+                .build();
+        when(donHangRepo.findById(10)).thenReturn(Optional.of(order), Optional.of(paidOrder));
+
+        String confirmAuthority = SecurityAuthorityUtils.permissionAuthority(RolePermission.ORDER_CONFIRM.getCode());
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                "admin",
+                "n/a",
+                List.of(new SimpleGrantedAuthority(confirmAuthority))
+        ));
+
+        RedirectAttributes ra = new RedirectAttributesModelMap();
+        try {
+            String view = controller.updateStatus(10, "Đặt hàng", "Đã nhận tiền", ra);
+
+            assertThat(view).isEqualTo("redirect:/admin/orders");
+            assertThat(ra.getFlashAttributes().get("messageType")).isEqualTo("success");
+            verify(orderService).confirmPayment(10);
+            verify(donHangRepo).save(paidOrder);
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     @Test

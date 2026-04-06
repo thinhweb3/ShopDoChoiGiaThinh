@@ -60,6 +60,25 @@ body {
     z-index: 1000;
 }
 
+.brand-link {
+    color: inherit;
+    min-width: 300px;
+    flex-shrink: 0;
+}
+
+.brand-link:hover {
+    color: inherit;
+}
+
+.shop-main-nav {
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+.shop-nav-link {
+    flex: 0 0 auto;
+}
+
 .quick-action-btn {
     border-radius: 999px;
     font-weight: 700;
@@ -688,6 +707,15 @@ body {
 }
 
 @media (max-width: 1199.98px) {
+    .brand-link {
+        min-width: 0;
+    }
+
+    .shop-main-nav {
+        width: 100%;
+        padding-bottom: 4px;
+    }
+
     .summary-card {
         position: static;
         top: auto;

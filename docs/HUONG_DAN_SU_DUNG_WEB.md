@@ -95,10 +95,8 @@ Truy cap mac dinh: `http://localhost:8080`
     - `CHUYEN_KHOAN` -> `/order/payment-qr/{id}`
 - Thanh toan QR:
   - `GET /order/payment-qr/{id}` tao URL QR theo cau hinh.
-  - `POST /order/confirm-payment/{id}`:
-    - Kiem tra don thuoc user.
-    - Kiem tra ton kho va tru ton.
-    - Cap nhat trang thai thanh toan `Da thanh toan`.
+  - Khach chuyen khoan theo ma QR va noi dung chuyen khoan.
+  - Admin tu kiem tra giao dich, sau do cap nhat thanh toan trong trang quan tri don hang.
 
 ### 3.5 Don hang, yeu thich, danh gia, ho so
 - Lich su don: `GET /order/list`

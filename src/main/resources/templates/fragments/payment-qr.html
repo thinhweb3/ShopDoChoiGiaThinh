@@ -25,10 +25,13 @@
                                 <span th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                             </div>
                         </div>
-                        <p class="text-muted small text-center">Sau khi chuyển khoản thành công, hãy chờ email báo có về Gmail đã cấu hình rồi nhấn nút bên dưới để hệ thống dò email, xác nhận thanh toán và trừ tồn kho.</p>
-                        <form th:action="@{/order/confirm-payment/{id}(id=${order.maDonHang})}" method="post" class="text-center">
-                            <button type="submit" class="btn btn-success btn-lg px-4">Kiểm tra Gmail nhận tiền</button>
-                        </form>
+                        <div class="alert alert-info border-0 rounded-4 text-center">
+                            Sau khi bạn chuyển khoản, shop sẽ kiểm tra giao dịch thủ công và cập nhật trạng thái thanh toán trong trang quản trị.
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a href="/home/index" class="btn btn-success btn-lg px-4">Về trang chủ</a>
+                            <a th:if="${currentUser != null}" href="/order/list" class="btn btn-outline-secondary btn-lg px-4">Xem đơn hàng của tôi</a>
+                        </div>
                         <p th:if="${message}" class="text-danger text-center mt-3" th:text="${message}"></p>
                     </div>
                 </div>

@@ -150,6 +150,26 @@
                     </p>
                 </div>
             </div>
+            <div class="footer-map-card mt-4">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                    <div>
+                        <h6 class="text-uppercase text-main mb-1">Bản đồ cửa hàng</h6>
+                        <p class="small text-white-50 mb-0" th:text="${storeContactAddress}">927 Nguyễn Ảnh Thủ, Trung Mỹ Tây, TPHCM</p>
+                    </div>
+                    <a class="btn btn-sm btn-warning rounded-pill fw-bold"
+                       href="https://www.google.com/maps/search/?api=1&amp;query=927%20Nguy%E1%BB%85n%20%E1%BA%A2nh%20Th%E1%BB%A7%2C%20Trung%20M%E1%BB%B9%20T%C3%A2y%2C%20TPHCM"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        <i class="fas fa-map-location-dot me-1"></i> Mở Google Maps
+                    </a>
+                </div>
+                <iframe
+                    title="Bản đồ Gia Thịnh Shop"
+                    src="https://www.google.com/maps?q=927%20Nguy%E1%BB%85n%20%E1%BA%A2nh%20Th%E1%BB%A7%2C%20Trung%20M%E1%BB%B9%20T%C3%A2y%2C%20TPHCM&amp;output=embed"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    allowfullscreen></iframe>
+            </div>
             <hr class="border-secondary">
             <div class="text-center small text-secondary">
                 &copy; 2026 Gia Thịnh Shop.

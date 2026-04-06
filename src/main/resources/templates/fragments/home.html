@@ -10,15 +10,14 @@
                 <h1 class="fw-bold text-uppercase mb-3 display-4">Thế giới đồ chơi Gia Thịnh</h1>
                 <p class="mb-4 fs-5">
                     Xem nhanh đồ chơi mới về, giá bán và tồn kho.
-                    Khi cần chốt đơn, khách liên hệ trực tiếp qua điện thoại hoặc Zalo.
+                    Chọn món bạn thích, thêm vào giỏ và đặt hàng trực tiếp ngay trên web.
                 </p>
                 <div class="d-flex flex-wrap justify-content-center gap-2">
                     <a th:href="@{/product/list}" class="btn btn-light rounded-pill px-4 py-3 fw-bold text-main shadow-sm">
                         <i class="fas fa-box-open me-2"></i>Xem toàn bộ đồ chơi
                     </a>
-                    <a class="btn btn-outline-light rounded-pill px-4 py-3 fw-bold"
-                       th:href="${storeContactZaloLink}" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-comment-dots me-2"></i>Nhắn Zalo
+                    <a href="/cart/view" class="btn btn-outline-light rounded-pill px-4 py-3 fw-bold">
+                        <i class="fas fa-cart-shopping me-2"></i>Xem giỏ hàng
                     </a>
                 </div>
             </div>
@@ -69,15 +68,16 @@
                                 <a th:href="@{|/product/detail/${p.maMoHinh}|}" class="btn btn-outline-dark rounded-pill fw-semibold">
                                     Xem chi tiết
                                 </a>
-                                <button type="button"
-                                        class="btn btn-success rounded-pill fw-semibold"
-                                        th:attr="data-product-code=${p.maMoHinh},
-                                                 data-product-name=${p.tenMoHinh},
-                                                 data-product-price=${@productService.getMinPrice(p) != null ? #numbers.formatDecimal(@productService.getMinPrice(p), 0, 'COMMA', 0, 'POINT') + ' đ' : 'Liên hệ'},
-                                                 data-product-stock=${@productService.getAvailableStock(p)}"
-                                        onclick="openOrderPopupFromElement(this)">
-                                    <i class="fas fa-phone-volume me-1"></i> Đặt hàng nhanh
-                                </button>
+                                <a th:if="${defaultVariantIds[p.maMoHinh] != null}"
+                                   th:href="@{|/cart/add/${defaultVariantIds[p.maMoHinh]}|}"
+                                   class="btn btn-success rounded-pill fw-semibold">
+                                    <i class="fas fa-cart-plus me-1"></i> Thêm vào giỏ
+                                </a>
+                                <a th:if="${defaultVariantIds[p.maMoHinh] == null}"
+                                   th:href="@{|/product/detail/${p.maMoHinh}|}"
+                                   class="btn btn-outline-secondary rounded-pill fw-semibold">
+                                    Chọn phiên bản
+                                </a>
                             </div>
                         </div>
                     </div>

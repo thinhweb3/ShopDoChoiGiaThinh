@@ -126,8 +126,8 @@
                                 <td class="ps-4 fw-bold text-primary" th:text="'#' + ${o.maDonHang}">#101</td>
 
                                 <td>
-                                    <div class="fw-bold" th:text="${o.taiKhoan.hoTen}">Tên</div>
-                                    <div class="small text-muted" th:text="${o.taiKhoan.soDienThoai}">SDT</div>
+                                    <div class="fw-bold" th:text="${o.tenNguoiNhan != null and !#strings.isEmpty(o.tenNguoiNhan) ? o.tenNguoiNhan : (o.taiKhoan != null ? o.taiKhoan.hoTen : 'Khách lẻ')}">Tên</div>
+                                    <div class="small text-muted" th:text="${o.soDienThoaiNhan != null and !#strings.isEmpty(o.soDienThoaiNhan) ? o.soDienThoaiNhan : (o.taiKhoan != null ? o.taiKhoan.soDienThoai : 'Chưa cập nhật')}">SDT</div>
                                 </td>
 
                                 <td th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}">Ngày giờ</td>

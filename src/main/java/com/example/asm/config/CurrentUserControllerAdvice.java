@@ -2,6 +2,7 @@ package com.example.asm.config;
 
 import com.example.asm.entity.TaiKhoan;
 import com.example.asm.service.AuthService;
+import com.example.asm.service.CartService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -10,10 +11,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 public class CurrentUserControllerAdvice {
 
     private final AuthService authService;
+    private final CartService cartService;
     private final StoreContactProperties storeContactProperties;
 
-    public CurrentUserControllerAdvice(AuthService authService, StoreContactProperties storeContactProperties) {
+    public CurrentUserControllerAdvice(AuthService authService,
+                                       CartService cartService,
+                                       StoreContactProperties storeContactProperties) {
         this.authService = authService;
+        this.cartService = cartService;
         this.storeContactProperties = storeContactProperties;
     }
 
@@ -51,5 +56,10 @@ public class CurrentUserControllerAdvice {
     @ModelAttribute("storeContactZaloLink")
     public String storeContactZaloLink() {
         return storeContactProperties.getZaloLink();
+    }
+
+    @ModelAttribute("cartCount")
+    public int cartCount() {
+        return cartService.getCount(authService.getUser());
     }
 }

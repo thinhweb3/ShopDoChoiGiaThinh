@@ -23,8 +23,6 @@ public class CartController {
 
     @GetMapping("/view")
     public String view(Model model) {
-        if (!authService.isLogin()) return "redirect:/auth/login";
-        
         var user = authService.getUser();
         model.addAttribute("cart", cartService.getCart(user));
         model.addAttribute("amount", cartService.getAmount(user));
@@ -33,7 +31,6 @@ public class CartController {
 
     @GetMapping("/add/{id}")
     public String add(@PathVariable("id") Integer idBienThe) {
-        if (!authService.isLogin()) return "redirect:/auth/login";
         try {
             cartService.add(authService.getUser(), idBienThe, 1);
         } catch (Exception e) {
@@ -41,21 +38,35 @@ public class CartController {
         return "redirect:/cart/view";
     }
 
+    @PostMapping("/add")
+    public String add(@RequestParam("variantId") Integer variantId,
+                      @RequestParam(value = "qty", defaultValue = "1") int qty) {
+        cartService.add(authService.getUser(), variantId, qty);
+        return "redirect:/cart/view";
+    }
+
+    @PostMapping("/buy-now")
+    public String buyNow(@RequestParam("variantId") Integer variantId,
+                         @RequestParam(value = "qty", defaultValue = "1") int qty) {
+        cartService.add(authService.getUser(), variantId, qty);
+        return "redirect:/order/checkout";
+    }
+
     @GetMapping("/remove/{id}")
-    public String remove(@PathVariable("id") Integer idGioHang) {
-        if (authService.isLogin()) cartService.remove(idGioHang);
+    public String remove(@PathVariable("id") Integer itemKey) {
+        cartService.remove(authService.getUser(), itemKey);
         return "redirect:/cart/view";
     }
 
     @GetMapping("/update/{id}")
-    public String update(@PathVariable("id") Integer idGioHang, @RequestParam("qty") int qty) {
-        if (authService.isLogin()) cartService.update(idGioHang, qty);
+    public String update(@PathVariable("id") Integer itemKey, @RequestParam("qty") int qty) {
+        cartService.update(authService.getUser(), itemKey, qty);
         return "redirect:/cart/view";
     }
 
     @GetMapping("/clear")
     public String clear() {
-        if (authService.isLogin()) cartService.clear(authService.getUser());
+        cartService.clear(authService.getUser());
         return "redirect:/cart/view";
     }
 }

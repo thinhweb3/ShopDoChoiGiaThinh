@@ -93,13 +93,19 @@ public class AdminOrderController {
         DonHang dh = donHangRepo.findById(id).orElse(null);
         if (dh == null) return ResponseEntity.notFound().build();
         TaiKhoan account = dh.getTaiKhoan();
+        String recipientName = dh.getTenNguoiNhan() != null && !dh.getTenNguoiNhan().isBlank()
+                ? dh.getTenNguoiNhan()
+                : (account != null ? account.getHoTen() : "Khách lẻ");
+        String recipientPhone = dh.getSoDienThoaiNhan() != null && !dh.getSoDienThoaiNhan().isBlank()
+                ? dh.getSoDienThoaiNhan()
+                : (account != null ? account.getSoDienThoai() : "Chưa cập nhật");
 
         Map<String, Object> response = new HashMap<>();
         response.put("maDonHang", dh.getMaDonHang());
-        response.put("tenNguoiNhan", account != null ? account.getHoTen() : "Khách lẻ");
-        response.put("sdt", account != null ? account.getSoDienThoai() : "Chưa cập nhật");
+        response.put("tenNguoiNhan", recipientName);
+        response.put("sdt", recipientPhone);
         response.put("diaChi", dh.getDiaChiGiaoHang());
-        response.put("ghiChu", "Không có ghi chú");
+        response.put("ghiChu", dh.getGhiChu() != null && !dh.getGhiChu().isBlank() ? dh.getGhiChu() : "Không có ghi chú");
         response.put("tongTien", dh.getTongTien());
         response.put("trangThai", toDisplayOrderStatus(dh.getTrangThai()));
         response.put("trangThaiThanhToan", toDisplayPaymentStatus(dh.getTrangThaiThanhToan()));

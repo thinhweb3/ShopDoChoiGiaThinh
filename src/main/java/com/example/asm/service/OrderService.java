@@ -19,6 +19,7 @@ import com.example.asm.repository.ChiTietDonHangRepository;
 import com.example.asm.repository.DonHangRepository;
 import com.example.asm.repository.GioHangRepository;
 import com.example.asm.repository.KhuyenMaiRepository;
+import org.springframework.util.StringUtils;
 
 @Service
 public class OrderService {
@@ -28,6 +29,7 @@ public class OrderService {
     @Autowired GioHangRepository gioHangRepo;
     @Autowired BienTheMoHinhRepository bienTheRepo;
     @Autowired KhuyenMaiRepository kmRepo;
+    @Autowired CartService cartService;
     @Value("${order.shipping-fee:30000}") long shippingFee;
     
     
@@ -45,8 +47,29 @@ public class OrderService {
 
     @Transactional(rollbackFor = Exception.class)
     public DonHang placeOrder(TaiKhoan user, String diaChi, String ghiChu, KhuyenMai voucher) {
+        return placeOrder(
+                user,
+                diaChi,
+                ghiChu,
+                voucher,
+                user != null ? user.getHoTen() : null,
+                user != null ? user.getSoDienThoai() : null,
+                user != null ? user.getEmail() : null
+        );
+    }
 
-        List<GioHang> cartItems = gioHangRepo.findByTaiKhoan_MaTaiKhoan(user.getMaTaiKhoan());
+    @Transactional(rollbackFor = Exception.class)
+    public DonHang placeOrder(TaiKhoan user,
+                              String diaChi,
+                              String ghiChu,
+                              KhuyenMai voucher,
+                              String tenNguoiNhan,
+                              String soDienThoaiNhan,
+                              String emailNguoiNhan) {
+
+        List<GioHang> cartItems = cartService != null
+                ? cartService.getCart(user)
+                : gioHangRepo.findByTaiKhoan_MaTaiKhoan(user.getMaTaiKhoan());
         if (cartItems.isEmpty()) throw new RuntimeException("Giỏ hàng trống!");
 
         long tongTienHang = cartItems.stream()
@@ -89,6 +112,10 @@ public class OrderService {
                 .taiKhoan(user)
                 .ngayDat(LocalDateTime.now())
                 .diaChiGiaoHang(diaChi)
+                .tenNguoiNhan(resolveRecipientName(user, tenNguoiNhan))
+                .soDienThoaiNhan(resolveRecipientPhone(user, soDienThoaiNhan))
+                .emailNguoiNhan(resolveRecipientEmail(user, emailNguoiNhan))
+                .ghiChu(StringUtils.hasText(ghiChu) ? ghiChu.trim() : null)
                 .tongTienHang(tongTienHang)
                 .phiVanChuyen(phiVanChuyen)
                 .tienGiamGia(discount)
@@ -116,15 +143,28 @@ public class OrderService {
             chiTietRepo.save(chiTiet);
         }
 
-        gioHangRepo.deleteByTaiKhoan_MaTaiKhoan(user.getMaTaiKhoan());
+        if (cartService != null) {
+            cartService.clear(user);
+        } else if (user != null) {
+            gioHangRepo.deleteByTaiKhoan_MaTaiKhoan(user.getMaTaiKhoan());
+        }
         return savedDH;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void confirmPayment(Integer maDonHang, Integer maTaiKhoan) {
         DonHang dh = donHangRepo.findById(maDonHang).orElse(null);
-        if (dh == null || !dh.getTaiKhoan().getMaTaiKhoan().equals(maTaiKhoan)) {
+        if (dh == null || dh.getTaiKhoan() == null || !dh.getTaiKhoan().getMaTaiKhoan().equals(maTaiKhoan)) {
             throw new RuntimeException("Đơn hàng không tồn tại hoặc không thuộc tài khoản của bạn.");
+        }
+        confirmPayment(maDonHang);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void confirmPayment(Integer maDonHang) {
+        DonHang dh = donHangRepo.findById(maDonHang).orElse(null);
+        if (dh == null) {
+            throw new RuntimeException("Đơn hàng không tồn tại.");
         }
         if ("Đã thanh toán".equals(dh.getTrangThaiThanhToan())) {
             return; 
@@ -142,5 +182,26 @@ public class OrderService {
         }
         dh.setTrangThaiThanhToan("Đã thanh toán");
         donHangRepo.save(dh);
+    }
+
+    private String resolveRecipientName(TaiKhoan user, String providedName) {
+        if (StringUtils.hasText(providedName)) {
+            return providedName.trim();
+        }
+        return user != null ? user.getHoTen() : null;
+    }
+
+    private String resolveRecipientPhone(TaiKhoan user, String providedPhone) {
+        if (StringUtils.hasText(providedPhone)) {
+            return providedPhone.trim();
+        }
+        return user != null ? user.getSoDienThoai() : null;
+    }
+
+    private String resolveRecipientEmail(TaiKhoan user, String providedEmail) {
+        if (StringUtils.hasText(providedEmail)) {
+            return providedEmail.trim();
+        }
+        return user != null ? user.getEmail() : null;
     }
 }

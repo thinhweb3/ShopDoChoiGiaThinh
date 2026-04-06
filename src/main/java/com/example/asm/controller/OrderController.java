@@ -38,8 +38,6 @@ public class OrderController {
 
     @PostMapping("/apply-voucher")
     public String applyVoucher(@RequestParam("voucherCode") String code, HttpSession session, RedirectAttributes params) {
-        if (!authService.isLogin()) return "redirect:/auth/login";
-        
         TaiKhoan user = authService.getUser();
         long amount = cartService.getAmount(user);
 
@@ -79,7 +77,6 @@ public class OrderController {
 
     @GetMapping("/checkout")
     public String checkout(Model model, HttpSession session) {
-        if (!authService.isLogin()) return "redirect:/auth/login";
         TaiKhoan user = authService.getUser();
         
         if (cartService.getCount(user) == 0) return "redirect:/home/index";
@@ -114,16 +111,54 @@ public class OrderController {
     }
 
 
-    @PostMapping("/purchase")
     public String purchase(@RequestParam("address") String address,
+                           @RequestParam("note") String note,
+                           @RequestParam(value = "paymentMethod", defaultValue = "COD") String paymentMethod,
+                           HttpSession session,
+                           RedirectAttributes params) {
+        try {
+            if (address != null && address.matches(".*[+\\-×÷&%^*()].*")) {
+                params.addFlashAttribute("message", "Địa chỉ nhận hàng không được chứa ký tự đặc biệt");
+                return "redirect:/order/checkout";
+            }
+
+            TaiKhoan user = authService.getUser();
+            KhuyenMai voucher = (KhuyenMai) session.getAttribute("voucher");
+            DonHang order = orderService.placeOrder(user, address, note, voucher);
+
+            session.removeAttribute("voucher");
+            session.setAttribute("recentOrderId", order.getMaDonHang());
+            session.removeAttribute("guestOrderId");
+
+            if ("CHUYEN_KHOAN".equalsIgnoreCase(paymentMethod)) {
+                return "redirect:/order/payment-qr/" + order.getMaDonHang();
+            }
+            return "redirect:/order/success";
+        } catch (Exception e) {
+            params.addFlashAttribute("message", e.getMessage());
+            return "redirect:/order/checkout";
+        }
+    }
+
+    @PostMapping("/purchase")
+    public String purchase(@RequestParam("recipientName") String recipientName,
+                           @RequestParam("recipientPhone") String recipientPhone,
+                           @RequestParam(value = "recipientEmail", required = false) String recipientEmail,
+                           @RequestParam("address") String address,
                            @RequestParam("note") String note,
                            @RequestParam(value = "paymentMethod", defaultValue = "COD") String paymentMethod,
                            HttpSession session, 
                            RedirectAttributes params) {
-        
-        if (!authService.isLogin()) return "redirect:/auth/login";
-        
+
         try {
+            if (recipientName == null || recipientName.trim().isBlank()) {
+                params.addFlashAttribute("message", "Vui lòng nhập tên người nhận.");
+                return "redirect:/order/checkout";
+            }
+            if (recipientPhone == null || recipientPhone.trim().isBlank()) {
+                params.addFlashAttribute("message", "Vui lòng nhập số điện thoại người nhận.");
+                return "redirect:/order/checkout";
+            }
             if (address != null && address.matches(".*[+\\-×÷&%^*()].*")) {
                 params.addFlashAttribute("message", "Địa chỉ nhận hàng không được chứa ký tự đặc biệt");
                 return "redirect:/order/checkout";
@@ -132,10 +167,23 @@ public class OrderController {
             TaiKhoan user = authService.getUser();
             KhuyenMai voucher = (KhuyenMai) session.getAttribute("voucher");
             
-            // Gọi service với tham số voucher
-            DonHang order = orderService.placeOrder(user, address, note, voucher);
+            DonHang order = orderService.placeOrder(
+                    user,
+                    address,
+                    note,
+                    voucher,
+                    recipientName,
+                    recipientPhone,
+                    recipientEmail
+            );
             
             session.removeAttribute("voucher"); 
+            session.setAttribute("recentOrderId", order.getMaDonHang());
+            if (user == null) {
+                session.setAttribute("guestOrderId", order.getMaDonHang());
+            } else {
+                session.removeAttribute("guestOrderId");
+            }
             
             if ("CHUYEN_KHOAN".equalsIgnoreCase(paymentMethod)) {	
                 return "redirect:/order/payment-qr/" + order.getMaDonHang();
@@ -150,13 +198,13 @@ public class OrderController {
 
 
     @GetMapping("/payment-qr/{id}")
-    public String paymentQr(@PathVariable("id") Integer id, Model model, RedirectAttributes params) {
-        if (!authService.isLogin()) return "redirect:/auth/login";
+    public String paymentQr(@PathVariable("id") Integer id, Model model, RedirectAttributes params, HttpSession session) {
         DonHang order = orderService.findById(id);
         TaiKhoan user = authService.getUser();
         
-        if (order == null || !order.getTaiKhoan().getMaTaiKhoan().equals(user.getMaTaiKhoan())) {
-            return "redirect:/order/list";
+        if (!canAccessOrder(order, user, session)) {
+            params.addFlashAttribute("message", "Bạn không có quyền xem đơn hàng này.");
+            return "redirect:/home/index";
         }
         if ("Đã thanh toán".equals(order.getTrangThaiThanhToan())) {
             return "redirect:/order/success";
@@ -171,13 +219,12 @@ public class OrderController {
         return "fragments/payment-qr";
     }
 
-    @PostMapping("/confirm-payment/{id}")
     public String confirmPayment(@PathVariable("id") Integer id, RedirectAttributes params) {
-        if (!authService.isLogin()) return "redirect:/auth/login";
         try {
             TaiKhoan user = authService.getUser();
             DonHang order = orderService.findById(id);
-            if (order == null || !order.getTaiKhoan().getMaTaiKhoan().equals(user.getMaTaiKhoan())) {
+            if (order == null || user == null || order.getTaiKhoan() == null
+                    || !order.getTaiKhoan().getMaTaiKhoan().equals(user.getMaTaiKhoan())) {
                 params.addFlashAttribute("message", "Đơn hàng không tồn tại hoặc không thuộc tài khoản của bạn.");
                 return "redirect:/order/list";
             }
@@ -202,8 +249,42 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/confirm-payment/{id}")
+    public String confirmPayment(@PathVariable("id") Integer id, RedirectAttributes params, HttpSession session) {
+        try {
+            DonHang order = orderService.findById(id);
+            TaiKhoan user = authService.getUser();
+            if (!canAccessOrder(order, user, session)) {
+                params.addFlashAttribute("message", "Đơn hàng không tồn tại hoặc không thuộc phiên mua hàng hiện tại.");
+                return "redirect:/home/index";
+            }
+            if ("Đã thanh toán".equals(order.getTrangThaiThanhToan())) {
+                return "redirect:/order/success";
+            }
+
+            var match = paymentInboxService.findMatchingPaymentEmail(order);
+            if (match.isEmpty()) {
+                params.addFlashAttribute("message",
+                        "Chưa tìm thấy email báo có khớp với mã chuyển khoản DH" + order.getMaDonHang()
+                                + " và số tiền " + order.getTongTien() + "đ. Hãy đợi email ngân hàng rồi thử lại.");
+                return "redirect:/order/payment-qr/" + id;
+            }
+
+            orderService.confirmPayment(id);
+            params.addFlashAttribute("paymentSuccess", "Thanh toán chuyển khoản đã được xác nhận. " + match.get().toDisplayText());
+            return "redirect:/order/success";
+        } catch (Exception e) {
+            params.addFlashAttribute("message", e.getMessage());
+            return "redirect:/order/payment-qr/" + id;
+        }
+    }
+
     @GetMapping("/success")
-    public String success() {
+    public String success(Model model, HttpSession session) {
+        Integer recentOrderId = (Integer) session.getAttribute("recentOrderId");
+        if (recentOrderId != null) {
+            model.addAttribute("order", orderService.findById(recentOrderId));
+        }
         return "fragments/order-success";
     }
 
@@ -226,5 +307,20 @@ public class OrderController {
         model.addAttribute("order", order);
         model.addAttribute("details", orderDetailService.findByOrderId(id));
         return "fragments/order-detail";
+    }
+
+    private boolean canAccessOrder(DonHang order, TaiKhoan user, HttpSession session) {
+        if (order == null) {
+            return false;
+        }
+        if (user != null) {
+            return order.getTaiKhoan() != null
+                    && order.getTaiKhoan().getMaTaiKhoan().equals(user.getMaTaiKhoan());
+        }
+        return session != null
+                && order.getTaiKhoan() == null
+                && session.getAttribute("guestOrderId") instanceof Integer guestOrderId
+                && guestOrderId != null
+                && guestOrderId.equals(order.getMaDonHang());
     }
 }

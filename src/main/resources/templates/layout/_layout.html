@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gia Thịnh Shop | Thế giới đồ chơi</title>
-    <meta name="description" content="Gia Thịnh Shop trưng bày đồ chơi, báo giá nhanh và nhận đơn thủ công qua điện thoại hoặc Zalo.">
+    <meta name="description" content="Gia Thịnh Shop bán đồ chơi trực tuyến, hỗ trợ thêm giỏ hàng, đặt hàng nhanh và giao hàng toàn quốc.">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -38,7 +38,7 @@
                         <div class="text-main display-6"><i class="fas fa-store"></i></div>
                         <div>
                             <h3 class="fw-bold text-dark m-0">Gia Thịnh Shop</h3>
-                            <small class="text-muted">Thế giới đồ chơi và nhận đơn qua Zalo/điện thoại</small>
+                            <small class="text-muted">Thế giới đồ chơi, đặt hàng nhanh và giao hàng toàn quốc</small>
                         </div>
                     </a>
                 </div>
@@ -51,7 +51,7 @@
                 </div>
 
                 <div class="col-lg-3 text-lg-end">
-                    <div class="d-flex justify-content-lg-end gap-2">
+                    <div class="d-flex justify-content-lg-end gap-2 flex-wrap">
                         <div class="dropdown">
                             <button class="category-btn dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-bars me-1"></i> Loại hàng
@@ -66,6 +66,31 @@
                         <a href="/product/list" class="btn btn-outline-dark rounded-pill px-3">
                             <i class="fas fa-box-open me-1"></i> Xem đồ chơi
                         </a>
+                        <a href="/cart/view" class="btn btn-outline-success rounded-pill px-3 position-relative">
+                            <i class="fas fa-cart-shopping me-1"></i> Giỏ hàng
+                            <span th:if="${cartCount > 0}"
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                  th:text="${cartCount}">0</span>
+                        </a>
+                        <a th:if="${currentUser == null}" href="/auth/login" class="btn btn-dark rounded-pill px-3">
+                            <i class="fas fa-right-to-bracket me-1"></i> Đăng nhập
+                        </a>
+                        <a th:if="${currentUser == null}" href="/account/sign-up" class="btn btn-outline-primary rounded-pill px-3">
+                            <i class="fas fa-user-plus me-1"></i> Đăng ký
+                        </a>
+                        <div th:if="${currentUser != null}" class="dropdown">
+                            <button class="btn btn-dark rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>
+                                <span th:text="${currentUser.hoTen != null ? currentUser.hoTen : currentUser.tenDangNhap}">Tài khoản</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/account/profile">Thông tin tài khoản</a></li>
+                                <li><a class="dropdown-item" href="/order/list">Đơn hàng của tôi</a></li>
+                                <li><a class="dropdown-item" href="/favorite/view">Yêu thích</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="/auth/logoff">Đăng xuất</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -82,12 +107,12 @@
                 <div class="col-md-5">
                     <h5 class="text-main mb-3">Về Gia Thịnh Shop</h5>
                     <p class="small text-white-50 mb-0">
-                        Website hiện tập trung trưng bày đồ chơi, báo giá nhanh và nhận đơn thủ công.
-                        Khi khách chọn hàng, hệ thống ưu tiên liên hệ trực tiếp qua điện thoại hoặc Zalo để chốt đơn.
+                        Website hỗ trợ xem catalog, thêm giỏ hàng, đặt mua trực tiếp và theo dõi đơn hàng online.
+                        Khi cần tư vấn thêm, shop vẫn hỗ trợ nhanh qua điện thoại và Zalo.
                     </p>
                 </div>
                 <div class="col-md-4">
-                    <h6 class="text-uppercase text-main mb-3">Liên hệ đặt hàng</h6>
+                    <h6 class="text-uppercase text-main mb-3">Hỗ trợ mua hàng</h6>
                     <p class="mb-2 small">
                         <i class="fas fa-phone me-2"></i>
                         <a class="text-white text-decoration-none" th:href="'tel:' + ${storeContactPhoneDigits}" th:text="${storeContactPhone}">0900000000</a>
@@ -100,9 +125,9 @@
                     </p>
                 </div>
                 <div class="col-md-3">
-                    <h6 class="text-uppercase text-main mb-3">Quản trị</h6>
+                    <h6 class="text-uppercase text-main mb-3">Tài khoản</h6>
                     <p class="small text-white-50 mb-0">
-                        Đăng nhập quản trị qua đường dẫn nội bộ để cập nhật đồ chơi và xử lý đơn hàng.
+                        Tạo tài khoản để lưu đơn hàng, nhưng bạn vẫn có thể đặt mua nhanh ngay cả khi chưa đăng nhập.
                     </p>
                 </div>
             </div>
@@ -113,76 +138,6 @@
         </div>
     </footer>
 
-    <div class="modal fade" id="orderContactModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header">
-                    <div>
-                        <h5 class="modal-title fw-bold">Liên hệ đặt hàng</h5>
-                        <small class="text-muted">Chốt đơn nhanh qua điện thoại hoặc Zalo</small>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="rounded-4 bg-light p-3 mb-3">
-                        <div class="small text-muted mb-1">Đồ chơi đang chọn</div>
-                        <div class="fw-bold" id="orderPopupName">Đồ chơi</div>
-                        <div class="small text-muted" id="orderPopupMeta">Mã hàng</div>
-                    </div>
-
-                    <div class="d-grid gap-2 mb-3">
-                        <a class="btn btn-dark rounded-pill" id="orderPopupCallButton" href="#">
-                            <i class="fas fa-phone me-2"></i>Gọi ngay
-                        </a>
-                        <a class="btn btn-success rounded-pill" id="orderPopupZaloButton" href="#" target="_blank" rel="noopener noreferrer">
-                            <i class="fas fa-comment-dots me-2"></i>Nhắn Zalo
-                        </a>
-                    </div>
-
-                    <label class="form-label fw-semibold">Tin nhắn gợi ý để gửi shop</label>
-                    <textarea class="form-control" id="orderPopupMessage" rows="4" readonly></textarea>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mt-2" onclick="copyOrderMessage()">
-                        <i class="fas fa-copy me-1"></i>Sao chép nội dung
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:inline="javascript">
-        const storeContactPhone = /*[[${storeContactPhone}]]*/ '0900000000';
-        const storeContactPhoneDigits = /*[[${storeContactPhoneDigits}]]*/ '0900000000';
-        const storeContactZalo = /*[[${storeContactZalo}]]*/ '0900000000';
-        const storeContactZaloLink = /*[[${storeContactZaloLink}]]*/ '#';
-
-        function openOrderPopupFromElement(element) {
-            const productName = element.getAttribute('data-product-name') || 'Đồ chơi';
-            const productCode = element.getAttribute('data-product-code') || 'N/A';
-            const productPrice = element.getAttribute('data-product-price') || 'Liên hệ';
-            const productStock = element.getAttribute('data-product-stock') || 'Đang cập nhật';
-
-            document.getElementById('orderPopupName').textContent = productName;
-            document.getElementById('orderPopupMeta').textContent =
-                `Mã hàng: ${productCode} | Giá bán: ${productPrice} | Tồn kho: ${productStock}`;
-
-            const message =
-                `Chào shop, mình muốn hỏi mua đồ chơi ${productName} (${productCode}). ` +
-                `Giá tham khảo: ${productPrice}. Tồn kho: ${productStock}.`;
-            document.getElementById('orderPopupMessage').value = message;
-            document.getElementById('orderPopupCallButton').href = `tel:${storeContactPhoneDigits}`;
-            document.getElementById('orderPopupZaloButton').href = storeContactZaloLink;
-
-            const modal = new bootstrap.Modal(document.getElementById('orderContactModal'));
-            modal.show();
-        }
-
-        function copyOrderMessage() {
-            const input = document.getElementById('orderPopupMessage');
-            input.select();
-            input.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(input.value);
-        }
-    </script>
 </body>
 </html>

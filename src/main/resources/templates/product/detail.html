@@ -58,19 +58,46 @@
                         </div>
                     </div>
 
-                    <div class="d-grid d-sm-flex gap-3 mb-4">
-                        <button type="button"
-                                class="btn btn-success btn-lg rounded-pill px-4"
-                                th:attr="data-product-code=${item.maMoHinh},
-                                         data-product-name=${item.tenMoHinh},
-                                         data-product-price=${@productService.getMinPrice(item) != null ? #numbers.formatDecimal(@productService.getMinPrice(item), 0, 'COMMA', 0, 'POINT') + ' đ' : 'Liên hệ'},
-                                         data-product-stock=${@productService.getAvailableStock(item)}"
-                                onclick="openOrderPopupFromElement(this)">
-                            <i class="fas fa-phone-volume me-2"></i>Đặt hàng ngay
-                        </button>
-                        <a th:href="${storeContactZaloLink}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-lg rounded-pill px-4">
-                            <i class="fas fa-comment-dots me-2"></i>Nhắn Zalo
-                        </a>
+                    <div class="card border-0 shadow-sm rounded-4 mb-4" th:if="${variants != null and !#lists.isEmpty(variants)}">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3">Chọn phiên bản để đặt hàng</h5>
+                            <form action="/cart/add" method="post">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-7">
+                                        <label class="form-label">Phiên bản</label>
+                                        <select class="form-select" name="variantId" required>
+                                            <option th:each="variant : ${variants}"
+                                                    th:value="${variant.maBienThe}"
+                                                    th:selected="${defaultVariantId != null and defaultVariantId == variant.maBienThe}"
+                                                    th:text="${(#strings.isEmpty(variant.kichThuoc) ? 'Mặc định' : variant.kichThuoc) + ' | ' + #numbers.formatDecimal(variant.giaBan, 0, 'COMMA', 0, 'POINT') + ' đ | Còn ' + variant.soLuongTon}">
+                                                Phiên bản
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Số lượng</label>
+                                        <input type="number" class="form-control" name="qty" min="1" value="1" required>
+                                    </div>
+                                    <div class="col-md-3 d-grid">
+                                        <button type="submit" class="btn btn-outline-dark btn-lg rounded-pill">
+                                            <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="d-grid d-sm-flex gap-3 mt-3">
+                                    <button type="submit" formaction="/cart/buy-now" class="btn btn-success btn-lg rounded-pill px-4">
+                                        <i class="fas fa-bag-shopping me-2"></i>Mua ngay
+                                    </button>
+                                    <a href="/cart/view" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                                        <i class="fas fa-cart-shopping me-2"></i>Xem giỏ hàng
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning rounded-4" th:if="${variants == null or #lists.isEmpty(variants)}">
+                        Sản phẩm này chưa có phiên bản khả dụng để đặt trực tuyến. Vui lòng liên hệ shop để được hỗ trợ.
                     </div>
 
                     <div class="card bg-light border-0 rounded-4">
@@ -103,15 +130,16 @@
                                           th:text="${#numbers.formatDecimal(@productService.getMinPrice(related), 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
                                     <span th:if="${@productService.getMinPrice(related) == null}" class="text-muted small">Liên hệ</span>
                                 </div>
-                                <button type="button"
-                                        class="btn btn-outline-success rounded-pill w-100"
-                                        th:attr="data-product-code=${related.maMoHinh},
-                                                 data-product-name=${related.tenMoHinh},
-                                                 data-product-price=${@productService.getMinPrice(related) != null ? #numbers.formatDecimal(@productService.getMinPrice(related), 0, 'COMMA', 0, 'POINT') + ' đ' : 'Liên hệ'},
-                                                 data-product-stock=${@productService.getAvailableStock(related)}"
-                                        onclick="openOrderPopupFromElement(this)">
-                                    Liên hệ đặt hàng
-                                </button>
+                                <a th:if="${relatedDefaultVariantIds[related.maMoHinh] != null}"
+                                   th:href="@{|/cart/add/${relatedDefaultVariantIds[related.maMoHinh]}|}"
+                                   class="btn btn-outline-success rounded-pill w-100">
+                                    Thêm vào giỏ
+                                </a>
+                                <a th:if="${relatedDefaultVariantIds[related.maMoHinh] == null}"
+                                   th:href="@{|/product/detail/${related.maMoHinh}|}"
+                                   class="btn btn-outline-secondary rounded-pill w-100">
+                                    Chọn phiên bản
+                                </a>
                             </div>
                         </div>
                     </div>

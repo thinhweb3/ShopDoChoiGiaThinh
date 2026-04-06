@@ -164,6 +164,25 @@ public class ProductService {
         return bienTheRepo.findById(id).orElse(null);
     }
 
+    public List<BienTheMoHinh> getOrderableVariants(MoHinh product) {
+        if (product == null || product.getBienThes() == null) {
+            return List.of();
+        }
+        return product.getBienThes().stream()
+                .filter(variant -> variant != null
+                        && variant.getMaBienThe() != null
+                        && variant.getGiaBan() != null
+                        && variant.getSoLuongTon() != null
+                        && variant.getSoLuongTon() > 0)
+                .sorted(Comparator.comparing(BienTheMoHinh::getGiaBan)
+                        .thenComparing(BienTheMoHinh::getMaBienThe))
+                .collect(Collectors.toList());
+    }
+
+    public BienTheMoHinh getDefaultVariant(MoHinh product) {
+        return getOrderableVariants(product).stream().findFirst().orElse(null);
+    }
+
     public List<MoHinh> findTop8BestSelling() {
     	return moHinhRepo.findTop8BestSelling(PageRequest.of(0, 8));
     }

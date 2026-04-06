@@ -73,9 +73,9 @@
                     <div class="banner-overlay"></div>
                     <div class="position-relative text-center p-4">
                         <h2 class="fw-bold text-uppercase mb-2">Catalog đồ chơi</h2>
-                        <p class="mb-3">Website tập trung hiển thị đồ chơi, tồn kho và báo giá nhanh. Bấm đặt hàng để lấy hotline và Zalo.</p>
-                        <a th:href="${storeContactZaloLink}" target="_blank" rel="noopener noreferrer" class="btn btn-light rounded-pill px-4 fw-bold text-main">
-                            Liên hệ shop
+                        <p class="mb-3">Chọn đồ chơi phù hợp, thêm vào giỏ và đặt hàng trực tiếp trên website bất cứ lúc nào.</p>
+                        <a href="/cart/view" class="btn btn-light rounded-pill px-4 fw-bold text-main">
+                            Xem giỏ hàng
                         </a>
                     </div>
                 </div>
@@ -119,15 +119,16 @@
                                     <a th:href="@{|/product/detail/${p.maMoHinh}|}" class="btn btn-outline-dark rounded-pill btn-sm">
                                         Xem chi tiết
                                     </a>
-                                    <button type="button"
-                                            class="btn btn-success rounded-pill btn-sm"
-                                            th:attr="data-product-code=${p.maMoHinh},
-                                                     data-product-name=${p.tenMoHinh},
-                                                     data-product-price=${displayPrices[p.maMoHinh] != null ? #numbers.formatDecimal(displayPrices[p.maMoHinh], 0, 'COMMA', 0, 'POINT') + ' đ' : 'Liên hệ'},
-                                                     data-product-stock=${@productService.getAvailableStock(p)}"
-                                            onclick="openOrderPopupFromElement(this)">
-                                        <i class="fas fa-phone-volume me-1"></i> Đặt hàng
-                                    </button>
+                                    <a th:if="${defaultVariantIds[p.maMoHinh] != null}"
+                                       th:href="@{|/cart/add/${defaultVariantIds[p.maMoHinh]}|}"
+                                       class="btn btn-success rounded-pill btn-sm">
+                                        <i class="fas fa-cart-plus me-1"></i> Thêm vào giỏ
+                                    </a>
+                                    <a th:if="${defaultVariantIds[p.maMoHinh] == null}"
+                                       th:href="@{|/product/detail/${p.maMoHinh}|}"
+                                       class="btn btn-outline-secondary rounded-pill btn-sm">
+                                        Chọn phiên bản
+                                    </a>
                                 </div>
                             </div>
                         </div>

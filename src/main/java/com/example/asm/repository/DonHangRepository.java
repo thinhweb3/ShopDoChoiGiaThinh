@@ -32,6 +32,9 @@ public interface DonHangRepository extends JpaRepository<DonHang, Integer> {
            LEFT JOIN dh.taiKhoan tk
            WHERE LOWER(COALESCE(tk.hoTen, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
               OR LOWER(COALESCE(tk.soDienThoai, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+              OR LOWER(COALESCE(dh.tenNguoiNhan, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+              OR LOWER(COALESCE(dh.soDienThoaiNhan, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+              OR LOWER(COALESCE(dh.emailNguoiNhan, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
               OR CAST(dh.maDonHang AS string) LIKE CONCAT('%', :keyword, '%')
               OR LOWER(COALESCE(dh.diaChiGiaoHang, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
            """)
@@ -44,6 +47,9 @@ public interface DonHangRepository extends JpaRepository<DonHang, Integer> {
            WHERE (
                    LOWER(COALESCE(tk.hoTen, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
                 OR LOWER(COALESCE(tk.soDienThoai, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(dh.tenNguoiNhan, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(dh.soDienThoaiNhan, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(dh.emailNguoiNhan, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
                 OR CAST(dh.maDonHang AS string) LIKE CONCAT('%', :keyword, '%')
                 OR LOWER(COALESCE(dh.diaChiGiaoHang, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
            )

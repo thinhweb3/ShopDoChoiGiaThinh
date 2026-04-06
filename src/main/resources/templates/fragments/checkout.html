@@ -52,18 +52,27 @@
                                     <div class="col-md-6">
                                         <label class="checkout-label" for="recipientName">Người nhận</label>
                                         <input id="recipientName" type="text" class="form-control checkout-input"
-                                               th:value="${session.user.hoTen}" readonly>
+                                               name="recipientName"
+                                               th:value="${currentUser != null ? currentUser.hoTen : ''}"
+                                               required
+                                               maxlength="255"
+                                               placeholder="Nhập họ tên người nhận">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="checkout-label" for="recipientPhone">Số điện thoại</label>
                                         <input id="recipientPhone" type="text" class="form-control checkout-input"
-                                               th:value="${session.user.soDienThoai}" readonly
-                                               placeholder="Chưa cập nhật số điện thoại">
+                                               name="recipientPhone"
+                                               th:value="${currentUser != null ? currentUser.soDienThoai : ''}"
+                                               required
+                                               maxlength="20"
+                                               placeholder="Nhập số điện thoại nhận hàng">
                                     </div>
                                     <div class="col-12">
                                         <label class="checkout-label" for="recipientEmail">Địa chỉ email</label>
                                         <input id="recipientEmail" type="email" class="form-control checkout-input"
-                                               th:value="${session.user.email}" readonly>
+                                               name="recipientEmail"
+                                               th:value="${currentUser != null ? currentUser.email : ''}"
+                                               placeholder="Nhập email để shop tiện liên hệ">
                                     </div>
                                     <div class="col-12">
                                         <label class="checkout-label" for="shippingAddress">Địa chỉ nhận hàng</label>
@@ -71,7 +80,7 @@
                                                type="text"
                                                class="form-control checkout-input"
                                                name="address"
-                                               th:value="${session.user.diaChi}"
+                                               th:value="${currentUser != null ? currentUser.diaChi : ''}"
                                                required
                                                maxlength="255"
                                                placeholder="Nhập địa chỉ giao hàng chi tiết"
@@ -83,6 +92,10 @@
                                         <textarea id="orderNote" class="form-control checkout-input" name="note" rows="4"
                                                   placeholder="Ví dụ: giao giờ hành chính, gọi trước khi giao..."></textarea>
                                     </div>
+                                </div>
+
+                                <div class="alert alert-info rounded-4 border-0 mt-4" th:if="${currentUser == null}">
+                                    Bạn có thể đặt hàng ngay cả khi chưa đăng nhập. Nếu muốn lưu lịch sử đơn hàng cho lần sau, hãy tạo tài khoản sau.
                                 </div>
 
                                 <div class="checkout-note-box mt-4">

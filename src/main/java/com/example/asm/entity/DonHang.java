@@ -56,6 +56,18 @@ public class DonHang {
     @Column(name = "DiaChiGiaoHang", nullable = false, length = 255)
     private String diaChiGiaoHang; 
 
+    @Column(name = "TenNguoiNhan", length = 255)
+    private String tenNguoiNhan;
+
+    @Column(name = "SoDienThoaiNhan", length = 20)
+    private String soDienThoaiNhan;
+
+    @Column(name = "EmailNguoiNhan", length = 100)
+    private String emailNguoiNhan;
+
+    @Column(name = "GhiChu", length = 1000)
+    private String ghiChu;
+
     @Column(name = "TrangThai", length = 50)
     private String trangThai; 
 

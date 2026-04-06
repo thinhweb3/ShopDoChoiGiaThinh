@@ -39,6 +39,10 @@ public class ProfileController {
     public String updateProfile(Model model, 
                                 @ModelAttribute("user") TaiKhoan formUser) {
         TaiKhoan currentUser = authService.getUser();
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
+
         TaiKhoan userInDb = accountService.findById(currentUser.getMaTaiKhoan());
 
         if (!userInDb.getTenDangNhap().equals(formUser.getTenDangNhap())) {
@@ -81,8 +85,11 @@ public class ProfileController {
                                  @RequestParam("currentPass") String currentPass,
                                  @RequestParam("newPass") String newPass,
                                  @RequestParam("confirmPass") String confirmPass) {
-        
         TaiKhoan currentUser = authService.getUser();
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
+
         TaiKhoan userInDb = accountService.findById(currentUser.getMaTaiKhoan());
 
         if (!accountService.matchesPassword(currentPass, userInDb.getMatKhau())) {

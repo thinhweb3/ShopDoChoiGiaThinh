@@ -1,12 +1,22 @@
 package com.example.asm.service;
 
 import com.example.asm.config.StorageProperties;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.Normalizer;
+import java.util.Iterator;
 import java.util.UUID;
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -14,6 +24,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileService {
+
+    private static final int PRODUCT_IMAGE_MAX_SIZE = 1200;
+    private static final float PRODUCT_IMAGE_QUALITY = 0.82f;
 
     @Autowired
     private StorageProperties storageProperties;
@@ -33,7 +46,11 @@ public class FileService {
             Files.createDirectories(dir);
 
             Path saveFile = dir.resolve(safeFileName);
-            Files.copy(file.getInputStream(), saveFile, StandardCopyOption.REPLACE_EXISTING);
+            if (StringUtils.hasText(preferredBaseName)) {
+                writeOptimizedJpeg(file, saveFile);
+            } else {
+                Files.copy(file.getInputStream(), saveFile, StandardCopyOption.REPLACE_EXISTING);
+            }
 
             return safeFileName;
         } catch (IOException e) {
@@ -43,7 +60,7 @@ public class FileService {
 
     private String buildFileName(String originalFileName, String preferredBaseName) {
         if (StringUtils.hasText(preferredBaseName)) {
-            return sanitizeBaseName(preferredBaseName) + extensionOf(originalFileName);
+            return sanitizeBaseName(preferredBaseName) + ".jpg";
         }
 
         return System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 8)
@@ -77,12 +94,63 @@ public class FileService {
         return StringUtils.hasText(safeName) ? safeName : "upload";
     }
 
-    private String extensionOf(String originalFileName) {
-        String safeName = sanitizeFileName(originalFileName);
-        int lastDot = safeName.lastIndexOf('.');
-        if (lastDot < 0 || lastDot == safeName.length() - 1) {
-            return ".bin";
+    private void writeOptimizedJpeg(MultipartFile file, Path saveFile) throws IOException {
+        BufferedImage source = ImageIO.read(file.getInputStream());
+        if (source == null) {
+            throw new IOException("Tệp tải lên không phải ảnh hợp lệ.");
         }
-        return safeName.substring(lastDot);
+
+        BufferedImage sizedImage = resizeIfNeeded(source);
+        BufferedImage rgbImage = new BufferedImage(sizedImage.getWidth(), sizedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = rgbImage.createGraphics();
+        try {
+            graphics.setColor(Color.WHITE);
+            graphics.fillRect(0, 0, rgbImage.getWidth(), rgbImage.getHeight());
+            graphics.drawImage(sizedImage, 0, 0, null);
+        } finally {
+            graphics.dispose();
+        }
+
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+        if (!writers.hasNext()) {
+            throw new IOException("Không tìm thấy bộ ghi ảnh JPG.");
+        }
+
+        ImageWriter writer = writers.next();
+        try (ImageOutputStream output = ImageIO.createImageOutputStream(saveFile.toFile())) {
+            writer.setOutput(output);
+            ImageWriteParam params = writer.getDefaultWriteParam();
+            if (params.canWriteCompressed()) {
+                params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                params.setCompressionQuality(PRODUCT_IMAGE_QUALITY);
+            }
+            writer.write(null, new IIOImage(rgbImage, null, null), params);
+        } finally {
+            writer.dispose();
+        }
+    }
+
+    private BufferedImage resizeIfNeeded(BufferedImage source) {
+        int width = source.getWidth();
+        int height = source.getHeight();
+        int maxSide = Math.max(width, height);
+        if (maxSide <= PRODUCT_IMAGE_MAX_SIZE) {
+            return source;
+        }
+
+        double scale = PRODUCT_IMAGE_MAX_SIZE / (double) maxSide;
+        int targetWidth = Math.max(1, (int) Math.round(width * scale));
+        int targetHeight = Math.max(1, (int) Math.round(height * scale));
+        BufferedImage resized = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = resized.createGraphics();
+        try {
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics.drawImage(source, 0, 0, targetWidth, targetHeight, null);
+        } finally {
+            graphics.dispose();
+        }
+        return resized;
     }
 }

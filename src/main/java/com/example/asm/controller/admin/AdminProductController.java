@@ -1,8 +1,10 @@
 package com.example.asm.controller.admin;
 
 import com.example.asm.entity.DanhMuc;
+import com.example.asm.entity.BienTheMoHinh;
 import com.example.asm.entity.HangSanXuat;
 import com.example.asm.entity.MoHinh;
+import com.example.asm.repository.BienTheMoHinhRepository;
 import com.example.asm.repository.DanhMucRepository;
 import com.example.asm.repository.HangSanXuatRepository;
 import com.example.asm.repository.LoaiHangRepository;
@@ -31,6 +33,7 @@ public class AdminProductController {
     @Autowired private DanhMucRepository danhMucRepo;
     @Autowired private HangSanXuatRepository hangRepo;
     @Autowired private LoaiHangRepository loaiHangRepo;
+    @Autowired private BienTheMoHinhRepository variantRepo;
     @Autowired private FileService fileService;
 
     @GetMapping
@@ -122,7 +125,10 @@ public class AdminProductController {
             }
 
             params.addFlashAttribute("messageType", "success");
-            moHinhRepo.save(mh);
+            MoHinh savedProduct = moHinhRepo.save(mh);
+            if (!isExist) {
+                ensureDefaultVariant(savedProduct);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             params.addFlashAttribute("message", "Lỗi: " + e.getMessage());
@@ -174,6 +180,21 @@ public class AdminProductController {
         mh.setMoTa(defaultText(mh.getMoTa(), "Không"));
         mh.setMauGhiChu(defaultText(mh.getMauGhiChu(), "Không"));
         mh.setTrangThai(mh.getTrangThai() == null ? true : mh.getTrangThai());
+    }
+
+    private void ensureDefaultVariant(MoHinh product) {
+        if (!variantRepo.findByMoHinh_MaMoHinh(product.getMaMoHinh()).isEmpty()) {
+            return;
+        }
+
+        variantRepo.save(BienTheMoHinh.builder()
+                .moHinh(product)
+                .kichThuoc("Mặc định")
+                .giaBan(defaultNumber(product.getGiaBan()))
+                .soLuongTon(defaultInteger(product.getTonKho()))
+                .sku(product.getMaMoHinh())
+                .tinhTrang("Còn hàng")
+                .build());
     }
 
     private String defaultText(String value, String defaultValue) {

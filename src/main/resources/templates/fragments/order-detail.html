@@ -57,7 +57,6 @@
                                     <thead class="bg-light">
                                         <tr>
                                             <th class="ps-4">Đồ chơi</th>
-                                            <th class="text-center">Size</th>
                                             <th class="text-center">SL</th>
                                             <th class="text-end">Đơn giá</th>
                                             <th class="text-end pe-4">Thành tiền</th>
@@ -77,7 +76,6 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="text-center small text-muted" th:text="${d.bienThe.kichThuoc}"></td>
                                             <td class="text-center fw-bold" th:text="${d.soLuong}"></td>
                                             <td class="text-end text-muted" 
                                                 th:text="${#numbers.formatDecimal(d.donGia, 0, 'COMMA', 0, 'POINT')} + ' đ'">
@@ -89,25 +87,25 @@
                                     </tbody>
                                     <tfoot class="bg-light">
                                         <tr>
-                                            <td colspan="4" class="text-end text-muted small pt-3">Tổng tiền hàng:</td>
+                                            <td colspan="3" class="text-end text-muted small pt-3">Tổng tiền hàng:</td>
                                             <td class="text-end pt-3 pe-4 fw-bold" 
                                                 th:text="${#numbers.formatDecimal(order.tongTienHang, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="4" class="text-end text-muted small border-0">Phí vận chuyển:</td>
+                                            <td colspan="3" class="text-end text-muted small border-0">Phí vận chuyển:</td>
                                             <td class="text-end border-0 pe-4" 
                                                 th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                             </td>
                                         </tr>
                                         <tr th:if="${order.tienGiamGia > 0}">
-                                            <td colspan="4" class="text-end text-muted small border-0">Giảm giá:</td>
+                                            <td colspan="3" class="text-end text-muted small border-0">Giảm giá:</td>
                                             <td class="text-end border-0 pe-4 text-success" 
                                                 th:text="'- ' + ${#numbers.formatDecimal(order.tienGiamGia, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="4" class="text-end fw-bold py-3 fs-5">TỔNG THANH TOÁN:</td>
+                                            <td colspan="3" class="text-end fw-bold py-3 fs-5">TỔNG THANH TOÁN:</td>
                                             <td class="text-end fw-bold text-danger py-3 fs-5 pe-4" 
                                                 th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                             </td>

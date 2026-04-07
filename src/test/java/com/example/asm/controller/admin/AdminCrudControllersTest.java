@@ -81,16 +81,19 @@ class AdminCrudControllersTest {
         DanhMucRepository danhMucRepo = mock(DanhMucRepository.class);
         HangSanXuatRepository hangRepo = mock(HangSanXuatRepository.class);
         LoaiHangRepository loaiHangRepo = mock(LoaiHangRepository.class);
+        BienTheMoHinhRepository variantRepo = mock(BienTheMoHinhRepository.class);
         ReflectionTestUtils.setField(c, "moHinhRepo", repo);
         ReflectionTestUtils.setField(c, "danhMucRepo", danhMucRepo);
         ReflectionTestUtils.setField(c, "hangRepo", hangRepo);
         ReflectionTestUtils.setField(c, "loaiHangRepo", loaiHangRepo);
+        ReflectionTestUtils.setField(c, "variantRepo", variantRepo);
         when(repo.findById("P1")).thenReturn(Optional.empty());
         when(danhMucRepo.findByTenDanhMuc("Chưa phân loại"))
                 .thenReturn(Optional.of(DanhMuc.builder().maDanhMuc(1).tenDanhMuc("Chưa phân loại").build()));
         when(hangRepo.findByTenHang("Không"))
                 .thenReturn(Optional.of(HangSanXuat.builder().maHang(1).tenHang("Không").build()));
         when(repo.save(any(MoHinh.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(variantRepo.findByMoHinh_MaMoHinh("P1")).thenReturn(List.of());
         RedirectAttributes ra = new RedirectAttributesModelMap();
         MoHinh mh = MoHinh.builder().maMoHinh("P1").tenMoHinh("RX").hinhAnh("").build();
 
@@ -107,6 +110,7 @@ class AdminCrudControllersTest {
         assertThat(mh.getDanhMuc().getTenDanhMuc()).isEqualTo("Chưa phân loại");
         assertThat(mh.getHangSanXuat().getTenHang()).isEqualTo("Không");
         assertThat(mh.getCreatedAt()).isNotNull();
+        verify(variantRepo).save(any(BienTheMoHinh.class));
     }
 
     @Test

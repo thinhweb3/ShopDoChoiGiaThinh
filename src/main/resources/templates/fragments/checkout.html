@@ -203,8 +203,6 @@
                                     <div class="flex-grow-1 min-w-0">
                                         <div class="summary-name" th:text="${item.bienThe.moHinh.tenMoHinh}">Tên đồ chơi</div>
                                         <div class="summary-meta">
-                                            <span th:text="${#strings.isEmpty(item.bienThe.kichThuoc) ? (#strings.isEmpty(item.bienThe.sku) ? 'Phiên bản tiêu chuẩn' : item.bienThe.sku) : item.bienThe.kichThuoc}">Phiên bản</span>
-                                            <span class="mx-1">•</span>
                                             <span th:text="${'SL: ' + item.soLuong}">SL: 1</span>
                                         </div>
                                     </div>

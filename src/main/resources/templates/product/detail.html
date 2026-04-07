@@ -40,45 +40,22 @@
                         </div>
                         <div class="col-sm-6">
                             <div class="border rounded-4 p-3 h-100">
-                                <div class="small text-muted">Quy cách</div>
-                                <div class="fw-semibold" th:text="${item.quyCach != null ? item.quyCach : 'Đang cập nhật'}">Đang cập nhật</div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="border rounded-4 p-3 h-100">
-                                <div class="small text-muted">Giá vốn</div>
-                                <div class="fw-semibold" th:text="${item.giaVon != null ? #numbers.formatDecimal(item.giaVon, 0, 'COMMA', 0, 'POINT') + ' đ' : 'Đang cập nhật'}">Đang cập nhật</div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="border rounded-4 p-3 h-100">
-                                <div class="small text-muted">Mẫu ghi chú</div>
-                                <div class="fw-semibold" th:text="${item.mauGhiChu != null ? item.mauGhiChu : 'Không có'}">Không có</div>
+                                <div class="small text-muted">Tồn kho</div>
+                                <div class="fw-semibold" th:text="${@productService.getAvailableStock(item)} + ' sản phẩm'">0 sản phẩm</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card border-0 shadow-sm rounded-4 mb-4" th:if="${variants != null and !#lists.isEmpty(variants)}">
+                    <div class="card border-0 shadow-sm rounded-4 mb-4" th:if="${defaultVariantId != null}">
                         <div class="card-body p-4">
-                            <h5 class="fw-bold mb-3">Chọn phiên bản để đặt hàng</h5>
                             <form action="/cart/add" method="post">
+                                <input type="hidden" name="variantId" th:value="${defaultVariantId}">
                                 <div class="row g-3 align-items-end">
-                                    <div class="col-md-7">
-                                        <label class="form-label">Phiên bản</label>
-                                        <select class="form-select" name="variantId" required>
-                                            <option th:each="variant : ${variants}"
-                                                    th:value="${variant.maBienThe}"
-                                                    th:selected="${defaultVariantId != null and defaultVariantId == variant.maBienThe}"
-                                                    th:text="${(#strings.isEmpty(variant.kichThuoc) ? 'Mặc định' : variant.kichThuoc) + ' | ' + #numbers.formatDecimal(variant.giaBan, 0, 'COMMA', 0, 'POINT') + ' đ | Còn ' + variant.soLuongTon}">
-                                                Phiên bản
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
+                                    <div class="col-sm-4">
                                         <label class="form-label">Số lượng</label>
                                         <input type="number" class="form-control" name="qty" min="1" value="1" required>
                                     </div>
-                                    <div class="col-md-3 d-grid">
+                                    <div class="col-sm-8 d-grid">
                                         <button type="submit" class="btn btn-outline-dark btn-lg rounded-pill">
                                             <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ
                                         </button>
@@ -96,8 +73,8 @@
                         </div>
                     </div>
 
-                    <div class="alert alert-warning rounded-4" th:if="${variants == null or #lists.isEmpty(variants)}">
-                        Sản phẩm này chưa có phiên bản khả dụng để đặt trực tuyến. Vui lòng liên hệ shop để được hỗ trợ.
+                    <div class="alert alert-warning rounded-4" th:if="${defaultVariantId == null}">
+                        Sản phẩm này tạm thời chưa thể đặt trực tuyến. Vui lòng liên hệ shop để được hỗ trợ.
                     </div>
 
                     <div class="card bg-light border-0 rounded-4">
@@ -138,7 +115,7 @@
                                 <a th:if="${relatedDefaultVariantIds[related.maMoHinh] == null}"
                                    th:href="@{|/product/detail/${related.maMoHinh}|}"
                                    class="btn btn-outline-secondary rounded-pill w-100">
-                                    Chọn phiên bản
+                                    Xem chi tiết
                                 </a>
                             </div>
                         </div>

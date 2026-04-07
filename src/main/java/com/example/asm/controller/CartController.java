@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.URI;
 import java.util.List;
 
 @Controller
@@ -30,19 +32,34 @@ public class CartController {
     }
 
     @GetMapping("/add/{id}")
-    public String add(@PathVariable("id") Integer idBienThe) {
+    public String add(@PathVariable("id") Integer idBienThe,
+                      @RequestHeader(value = "referer", required = false) String referer,
+                      RedirectAttributes params) {
         try {
             cartService.add(authService.getUser(), idBienThe, 1);
+            params.addFlashAttribute("cartMessage", "Đã thêm vào giỏ hàng.");
+            params.addFlashAttribute("cartMessageType", "success");
         } catch (Exception e) {
+            params.addFlashAttribute("cartMessage", e.getMessage() == null ? "Không thể thêm vào giỏ hàng." : e.getMessage());
+            params.addFlashAttribute("cartMessageType", "danger");
         }
-        return "redirect:/cart/view";
+        return redirectBack(referer);
     }
 
     @PostMapping("/add")
     public String add(@RequestParam("variantId") Integer variantId,
-                      @RequestParam(value = "qty", defaultValue = "1") int qty) {
-        cartService.add(authService.getUser(), variantId, qty);
-        return "redirect:/cart/view";
+                      @RequestParam(value = "qty", defaultValue = "1") int qty,
+                      @RequestHeader(value = "referer", required = false) String referer,
+                      RedirectAttributes params) {
+        try {
+            cartService.add(authService.getUser(), variantId, qty);
+            params.addFlashAttribute("cartMessage", "Đã thêm vào giỏ hàng.");
+            params.addFlashAttribute("cartMessageType", "success");
+        } catch (Exception e) {
+            params.addFlashAttribute("cartMessage", e.getMessage() == null ? "Không thể thêm vào giỏ hàng." : e.getMessage());
+            params.addFlashAttribute("cartMessageType", "danger");
+        }
+        return redirectBack(referer);
     }
 
     @PostMapping("/buy-now")
@@ -68,5 +85,31 @@ public class CartController {
     public String clear() {
         cartService.clear(authService.getUser());
         return "redirect:/cart/view";
+    }
+
+    private String redirectBack(String referer) {
+        return "redirect:" + safeReturnPath(referer);
+    }
+
+    private String safeReturnPath(String referer) {
+        if (referer == null || referer.isBlank()) {
+            return "/product/list";
+        }
+
+        try {
+            URI uri = URI.create(referer.trim());
+            String path = uri.getRawPath();
+            if (path == null || path.isBlank() || !path.startsWith("/") || path.startsWith("//")) {
+                return "/product/list";
+            }
+            if (path.startsWith("/cart/add") || path.startsWith("/cart/buy-now")) {
+                return "/product/list";
+            }
+
+            String query = uri.getRawQuery();
+            return query == null || query.isBlank() ? path : path + "?" + query;
+        } catch (IllegalArgumentException e) {
+            return "/product/list";
+        }
     }
 }

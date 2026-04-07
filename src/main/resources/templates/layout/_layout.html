@@ -116,6 +116,23 @@
         <div th:replace="${view}"></div>
     </div>
 
+    <div th:if="${cartMessage != null}"
+         th:class="${'cart-feedback alert alert-' + (cartMessageType != null ? cartMessageType : 'success') + ' shadow-sm'}"
+         role="status"
+         aria-live="polite">
+        <i class="fas fa-circle-info me-2"></i>
+        <span th:text="${cartMessage}">Đã thêm vào giỏ hàng.</span>
+    </div>
+
+    <a th:if="${cartCount > 0}"
+       href="/cart/view"
+       class="floating-cart-btn"
+       aria-label="Mở giỏ hàng">
+        <i class="fas fa-cart-shopping"></i>
+        <span class="floating-cart-count" th:text="${cartCount}">0</span>
+        <span class="floating-cart-text">Giỏ hàng</span>
+    </a>
+
     <footer class="site-footer text-white pt-5 pb-3">
        <div class="container">
             <div class="row g-4">

@@ -53,18 +53,38 @@ class ShopControllerAdditionalTest {
     }
 
     @Test
-    void cartAddShouldSwallowExceptionAndRedirect() {
+    void cartAddShouldReturnToRefererWhenServiceFails() {
         CartController controller = new CartController();
         AuthService auth = mock(AuthService.class);
         CartService cart = mock(CartService.class);
         TaiKhoan user = TaiKhoan.builder().maTaiKhoan(1).build();
+        RedirectAttributes ra = new RedirectAttributesModelMap();
         ReflectionTestUtils.setField(controller, "authService", auth);
         ReflectionTestUtils.setField(controller, "cartService", cart);
         when(auth.isLogin()).thenReturn(true);
         when(auth.getUser()).thenReturn(user);
         org.mockito.Mockito.doThrow(new RuntimeException("boom")).when(cart).add(user, 2, 1);
 
-        assertThat(controller.add(2)).isEqualTo("redirect:/cart/view");
+        assertThat(controller.add(2, "https://shop.test/product/list?page=1", ra))
+                .isEqualTo("redirect:/product/list?page=1");
+        assertThat(ra.getFlashAttributes().get("cartMessage")).isEqualTo("boom");
+        assertThat(ra.getFlashAttributes().get("cartMessageType")).isEqualTo("danger");
+    }
+
+    @Test
+    void cartAddShouldReturnToProductListWhenRefererMissing() {
+        CartController controller = new CartController();
+        AuthService auth = mock(AuthService.class);
+        CartService cart = mock(CartService.class);
+        TaiKhoan user = TaiKhoan.builder().maTaiKhoan(1).build();
+        RedirectAttributes ra = new RedirectAttributesModelMap();
+        ReflectionTestUtils.setField(controller, "authService", auth);
+        ReflectionTestUtils.setField(controller, "cartService", cart);
+        when(auth.getUser()).thenReturn(user);
+
+        assertThat(controller.add(2, null, ra)).isEqualTo("redirect:/product/list");
+        assertThat(ra.getFlashAttributes().get("cartMessage")).isEqualTo("Đã thêm vào giỏ hàng.");
+        verify(cart).add(user, 2, 1);
     }
 
     @Test

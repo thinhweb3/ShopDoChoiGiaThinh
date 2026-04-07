@@ -206,21 +206,25 @@ body {
 }
 
 .banner-qc {
-    background:
-        linear-gradient(120deg, rgba(117, 47, 13, 0.78) 0%, rgba(194, 85, 24, 0.68) 48%, rgba(255, 200, 74, 0.42) 100%),
-        url('/images/banner-bg.jpg') no-repeat center center / cover;
+    background-color: #f7fcff;
+    background-image:
+        linear-gradient(120deg, rgba(255, 255, 255, 0.9) 0%, rgba(234, 248, 255, 0.84) 54%, rgba(255, 247, 230, 0.78) 100%),
+        url('/images/logo.jpg');
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, center;
+    background-size: cover, 360px auto;
     height: 250px;
     position: relative;
     border-radius: 24px;
     overflow: hidden;
-    color: white;
+    color: var(--text-ink);
     z-index: 1;
     box-shadow: 0 20px 42px rgba(15, 23, 42, 0.14);
 }
 .banner-overlay {
     background:
-        radial-gradient(circle at top right, rgba(255, 255, 255, 0.36), transparent 30%),
-        linear-gradient(120deg, rgba(95, 33, 11, 0.28), rgba(194, 85, 24, 0.14));
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.58), transparent 30%),
+        linear-gradient(120deg, rgba(255, 255, 255, 0.24), rgba(255, 200, 74, 0.1));
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
 }

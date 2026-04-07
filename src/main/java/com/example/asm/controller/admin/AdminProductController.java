@@ -113,7 +113,7 @@ public class AdminProductController {
             }
 
             if (imageFile != null && !imageFile.isEmpty()) {
-                String savedFileName = fileService.save(imageFile, "images");
+                String savedFileName = fileService.save(imageFile, "images", mh.getMaMoHinh());
                 if (savedFileName != null && !savedFileName.isBlank()) {
                     mh.setHinhAnh(savedFileName);
                 }

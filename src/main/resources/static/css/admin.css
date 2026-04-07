@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap');
 
 :root {
-    --primary-color: #8a350f;
+    --primary-color: #c25518;
     --secondary-color: #1399cf;
-    --success-color: #ffb51f;
-    --warning-color: #ffd67c;
+    --success-color: #ffc84a;
+    --warning-color: #ffe09a;
     --danger-color: #e2645d;
-    --light-bg: #ecf9fe;
+    --light-bg: #f6fbff;
     --card-bg: #ffffff;
-    --text-color: #5f6f80;
+    --text-color: #526579;
     --sidebar-width: 80px;
 }
 
 body {
     font-family: 'Nunito', sans-serif;
     background:
-        radial-gradient(circle at top right, rgba(255, 181, 31, 0.2), transparent 22%),
-        linear-gradient(180deg, #ffffff 0%, var(--light-bg) 100%);
+        radial-gradient(circle at top right, rgba(255, 200, 74, 0.16), transparent 24%),
+        linear-gradient(180deg, #ffffff 0%, var(--light-bg) 70%, #fffaf0 100%);
     color: var(--text-color);
     overflow-x: hidden;
 }
@@ -32,7 +32,7 @@ body {
     max-width: var(--sidebar-width);
     background-color: var(--card-bg);
     min-height: 100vh;
-    box-shadow: 0 18px 30px rgba(138, 53, 15, 0.08);
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.07);
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -55,14 +55,15 @@ body {
     height: 44px;
     border-radius: 14px;
     object-fit: contain;
-    background: #cceefa;
-    box-shadow: 0 8px 18px rgba(138, 53, 15, 0.18);
+    background: #f7fcff;
+    border: 1px solid rgba(194, 85, 24, 0.08);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
 }
 
 .list-group-item {
     border: none;
     background: transparent;
-    color: #a8b0b9;
+    color: #8fa0b2;
     font-size: 1.2rem;
     padding: 15px;
     margin-bottom: 10px;
@@ -76,9 +77,9 @@ body {
 }
 
 .list-group-item:hover, .list-group-item.active {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, #d96b27 0%, var(--primary-color) 100%);
     color: #fff;
-    box-shadow: 0 10px 18px rgba(138, 53, 15, 0.24);
+    box-shadow: 0 10px 18px rgba(194, 85, 24, 0.18);
 }
 
 #page-content-wrapper {
@@ -103,7 +104,7 @@ body {
     background-color: var(--card-bg);
     border: none;
     border-radius: 18px;
-    box-shadow: 0 14px 28px rgba(138, 53, 15, 0.05);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
     margin-bottom: 24px;
 }
 
@@ -112,11 +113,26 @@ body {
     border-bottom: none;
     padding: 1.5rem 1.5rem 0.5rem;
     font-weight: 700;
-    color: #143f67;
+    color: #1f4d73;
 }
 
 .card-body {
     padding: 1.5rem;
+}
+
+.form-control,
+.form-select {
+    border-color: rgba(15, 23, 42, 0.1);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: rgba(194, 85, 24, 0.45);
+    box-shadow: 0 0 0 0.2rem rgba(255, 200, 74, 0.22);
+}
+
+.table-light {
+    --bs-table-bg: #f8fcff;
 }
 
 .stats-circle {
@@ -176,17 +192,17 @@ body {
 .btn-primary {
     --bs-btn-bg: var(--primary-color);
     --bs-btn-border-color: var(--primary-color);
-    --bs-btn-hover-bg: #5f210b;
-    --bs-btn-hover-border-color: #5f210b;
-    --bs-btn-active-bg: #5f210b;
-    --bs-btn-active-border-color: #5f210b;
+    --bs-btn-hover-bg: #8a350f;
+    --bs-btn-hover-border-color: #8a350f;
+    --bs-btn-active-bg: #8a350f;
+    --bs-btn-active-border-color: #8a350f;
     --bs-btn-font-weight: 700;
     --bs-btn-border-radius: 10px;
 }
 
 .btn-outline-primary {
     --bs-btn-color: var(--primary-color);
-    --bs-btn-border-color: rgba(138, 53, 15, 0.32);
+    --bs-btn-border-color: rgba(194, 85, 24, 0.28);
     --bs-btn-hover-bg: var(--primary-color);
     --bs-btn-hover-border-color: var(--primary-color);
     --bs-btn-font-weight: 700;
@@ -210,7 +226,7 @@ body {
 }
 
 .text-success {
-    color: #a87215 !important;
+    color: #9a4b10 !important;
 }
 
 .bg-primary,
@@ -230,11 +246,11 @@ body {
 }
 
 .bg-primary-subtle {
-    background-color: #e7f4ff !important;
+    background-color: #edf8ff !important;
 }
 
 .border-primary-subtle {
-    border-color: #c8e0f8 !important;
+    border-color: #d6edf9 !important;
 }
 
 .bg-info-subtle {
@@ -246,11 +262,11 @@ body {
 }
 
 .bg-success-subtle {
-    background-color: #fff5dc !important;
+    background-color: #fff6df !important;
 }
 
 .border-success-subtle {
-    border-color: #efd08c !important;
+    border-color: #f4d996 !important;
 }
 
 ::-webkit-scrollbar {

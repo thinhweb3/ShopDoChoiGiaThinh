@@ -294,7 +294,23 @@
         const defaultProductImage = /*[[@{/images/logo.jpg}]]*/ '/images/logo.jpg';
 
         function resolveImageSrc(path) {
-            return defaultProductImage;
+            if (!path) {
+                return defaultProductImage;
+            }
+            const normalized = String(path).trim();
+            if (!normalized || normalized.toLowerCase() === 'banner-bg.jpg') {
+                return defaultProductImage;
+            }
+            if (normalized.startsWith('http://')
+                || normalized.startsWith('https://')
+                || normalized.startsWith('//')
+                || normalized.startsWith('data:')) {
+                return normalized;
+            }
+            if (normalized.startsWith('/')) {
+                return normalized;
+            }
+            return '/images/' + encodeURIComponent(normalized).replace(/%2F/g, '/');
         }
 
         // Load statistics on page load

@@ -14,9 +14,19 @@ class AssetUrlServiceTest {
     }
 
     @Test
-    void productShouldUseLogoForStoredImageValue() {
+    void productShouldKeepAbsoluteUrl() {
         String url = "https://cdn.example.com/demo.png";
-        assertThat(assetUrlService.product(url)).isEqualTo("/images/logo.jpg");
+        assertThat(assetUrlService.product(url)).isEqualTo(url);
+    }
+
+    @Test
+    void productShouldResolveStoredFileName() {
+        assertThat(assetUrlService.product("MH001.png")).isEqualTo("/images/MH001.png");
+    }
+
+    @Test
+    void productShouldUseLogoForLegacyBannerPlaceholder() {
+        assertThat(assetUrlService.product("banner-bg.jpg")).isEqualTo("/images/logo.jpg");
     }
 
     @Test

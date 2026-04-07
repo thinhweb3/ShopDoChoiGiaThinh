@@ -14,7 +14,7 @@ public class AssetUrlService {
             "https://ui-avatars.com/api/?name=User&background=random&color=fff";
 
     public String product(String value) {
-        return DEFAULT_PRODUCT_IMAGE;
+        return resolve(value, DEFAULT_PRODUCT_IMAGE, true);
     }
 
     public String avatar(String value) {
@@ -28,7 +28,9 @@ public class AssetUrlService {
 
         String normalized = value.trim();
         if (treatLegacyDefaultAsMissing
-                && ("default.png".equalsIgnoreCase(normalized) || "no-image.png".equalsIgnoreCase(normalized))) {
+                && ("default.png".equalsIgnoreCase(normalized)
+                || "no-image.png".equalsIgnoreCase(normalized)
+                || "banner-bg.jpg".equalsIgnoreCase(normalized))) {
             return fallback;
         }
         if (normalized.startsWith("http://")

@@ -9,14 +9,14 @@ class AssetUrlServiceTest {
     private final AssetUrlService assetUrlService = new AssetUrlService();
 
     @Test
-    void productShouldFallbackWhenValueMissing() {
-        assertThat(assetUrlService.product(null)).isEqualTo("/images/banner-bg.jpg");
+    void productShouldUseLogoWhenValueMissing() {
+        assertThat(assetUrlService.product(null)).isEqualTo("/images/logo.jpg");
     }
 
     @Test
-    void productShouldKeepAbsoluteUrl() {
+    void productShouldUseLogoForStoredImageValue() {
         String url = "https://cdn.example.com/demo.png";
-        assertThat(assetUrlService.product(url)).isEqualTo(url);
+        assertThat(assetUrlService.product(url)).isEqualTo("/images/logo.jpg");
     }
 
     @Test

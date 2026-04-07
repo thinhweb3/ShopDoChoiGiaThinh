@@ -158,7 +158,7 @@ public class AdminProductController {
     }
 
     private void applyDefaultValues(MoHinh mh) {
-        mh.setHinhAnh(defaultText(mh.getHinhAnh(), "banner-bg.jpg"));
+        mh.setHinhAnh(defaultText(mh.getHinhAnh(), "logo.jpg"));
         mh.setTyLe(defaultText(mh.getTyLe(), "Không"));
         mh.setChatLieu(defaultText(mh.getChatLieu(), "Không"));
         mh.setNhomHang(defaultText(mh.getNhomHang(), "Không"));

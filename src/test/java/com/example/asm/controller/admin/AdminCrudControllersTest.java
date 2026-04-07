@@ -97,7 +97,7 @@ class AdminCrudControllersTest {
         String view = c.save(mh, null, null, null, ra);
 
         assertThat(view).isEqualTo("redirect:/admin/products");
-        assertThat(mh.getHinhAnh()).isEqualTo("banner-bg.jpg");
+        assertThat(mh.getHinhAnh()).isEqualTo("logo.jpg");
         assertThat(mh.getGiaBan()).isEqualTo(0L);
         assertThat(mh.getGiaVon()).isEqualTo(0L);
         assertThat(mh.getTonKho()).isEqualTo(0);

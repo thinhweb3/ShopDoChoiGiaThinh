@@ -9,12 +9,12 @@ import org.springframework.web.util.UriUtils;
 @Service("assetUrlService")
 public class AssetUrlService {
 
-    private static final String DEFAULT_PRODUCT_IMAGE = "/images/banner-bg.jpg";
+    private static final String DEFAULT_PRODUCT_IMAGE = "/images/logo.jpg";
     private static final String DEFAULT_AVATAR =
             "https://ui-avatars.com/api/?name=User&background=random&color=fff";
 
     public String product(String value) {
-        return resolve(value, DEFAULT_PRODUCT_IMAGE, false);
+        return DEFAULT_PRODUCT_IMAGE;
     }
 
     public String avatar(String value) {
@@ -30,9 +30,6 @@ public class AssetUrlService {
         if (treatLegacyDefaultAsMissing
                 && ("default.png".equalsIgnoreCase(normalized) || "no-image.png".equalsIgnoreCase(normalized))) {
             return fallback;
-        }
-        if ("banner-bg.jpg".equalsIgnoreCase(normalized)) {
-            return DEFAULT_PRODUCT_IMAGE;
         }
         if (normalized.startsWith("http://")
                 || normalized.startsWith("https://")

@@ -122,6 +122,7 @@ public class AdminOrderController {
             Map<String, Object> item = new HashMap<>();
             item.put("tenSp", ct.getBienThe().getMoHinh().getTenMoHinh());
             item.put("phanLoai", ct.getBienThe().getKichThuoc());
+            item.put("maHang", ct.getBienThe().getMoHinh().getMaMoHinh());
             item.put("soLuong", ct.getSoLuong());
             item.put("donGia", ct.getDonGia());
             item.put("hinhAnh", ct.getBienThe().getMoHinh().getHinhAnh());

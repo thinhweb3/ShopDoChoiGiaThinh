@@ -53,15 +53,15 @@
                                     </td>
                                     
                                     <td class="text-center fw-bold text-danger">
-                                        <span th:if="${not #lists.isEmpty(fav.moHinh.bienThes)}"
-                                              th:text="${#numbers.formatDecimal(fav.moHinh.bienThes[0].giaBan, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                        <span th:if="${@productService.getMinPrice(fav.moHinh) != null}"
+                                              th:text="${#numbers.formatDecimal(@productService.getMinPrice(fav.moHinh), 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                         </span>
-                                        <span th:if="${#lists.isEmpty(fav.moHinh.bienThes)}" class="text-muted small">Liên hệ</span>
+                                        <span th:if="${@productService.getMinPrice(fav.moHinh) == null}" class="text-muted small">Liên hệ</span>
                                     </td>
 
                                     <td class="text-center">
-                                        <span th:if="${fav.moHinh.trangThai}" class="badge bg-success bg-opacity-75">Còn hàng</span>
-                                        <span th:unless="${fav.moHinh.trangThai}" class="badge bg-secondary">Ngừng kinh doanh</span>
+                                        <span th:if="${@productService.isOrderable(fav.moHinh)}" class="badge bg-success bg-opacity-75">Còn hàng</span>
+                                        <span th:unless="${@productService.isOrderable(fav.moHinh)}" class="badge bg-secondary">Tạm hết hàng</span>
                                     </td>
 
                                     <td class="text-end pe-4">

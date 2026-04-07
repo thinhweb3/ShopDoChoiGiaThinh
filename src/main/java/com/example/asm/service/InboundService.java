@@ -80,7 +80,7 @@ public class InboundService {
         DonNhap dn = donNhapRepo.findById(maDonNhap)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn nhập"));
         BienTheMoHinh bt = bienTheRepo.findById(maBienThe)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy biến thể"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy dòng tồn kho"));
 
         bt.setSoLuongTon(bt.getSoLuongTon() + soLuong);
         bienTheRepo.save(bt);

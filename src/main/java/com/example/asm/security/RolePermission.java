@@ -24,7 +24,7 @@ public enum RolePermission {
     PRODUCT_CREATE("PRODUCT_CREATE", "Sản phẩm", "Thêm sản phẩm", "Tạo sản phẩm mới"),
     PRODUCT_UPDATE("PRODUCT_UPDATE", "Sản phẩm", "Sửa sản phẩm", "Cập nhật thông tin sản phẩm"),
     PRODUCT_DELETE("PRODUCT_DELETE", "Sản phẩm", "Xóa sản phẩm", "Xóa sản phẩm khỏi hệ thống"),
-    PRODUCT_VARIANT_MANAGE("PRODUCT_VARIANT_MANAGE", "Sản phẩm", "Quản lý biến thể", "Thêm sửa xóa size, giá, tồn kho"),
+    PRODUCT_VARIANT_MANAGE("PRODUCT_VARIANT_MANAGE", "Sản phẩm", "Quản lý tồn kho", "Đồng bộ giá bán và tồn kho sản phẩm"),
 
     ORDER_CONFIRM("ORDER_CONFIRM", "Đơn hàng", "Xác nhận đơn", "Cập nhật xử lý, giao hàng, hoàn thành"),
     ORDER_CANCEL("ORDER_CANCEL", "Đơn hàng", "Hủy đơn", "Đổi trạng thái đơn sang đã hủy"),

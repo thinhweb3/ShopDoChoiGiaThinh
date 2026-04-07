@@ -209,26 +209,23 @@ class AdminCrudControllersTest {
     @Test
     void adminVariantIndexShouldRedirectWhenParentMissing() {
         AdminVariantController c = new AdminVariantController();
-        MoHinhRepository moHinhRepo = mock(MoHinhRepository.class);
-        ReflectionTestUtils.setField(c, "moHinhRepo", moHinhRepo);
-        when(moHinhRepo.findById("NOTFOUND")).thenReturn(Optional.empty());
 
-        assertThat(c.index("NOTFOUND", new ExtendedModelMap())).isEqualTo("redirect:/admin/products");
+        RedirectAttributes ra = new RedirectAttributesModelMap();
+
+        assertThat(c.index("NOTFOUND", ra)).isEqualTo("redirect:/admin/products");
+        assertThat(ra.getFlashAttributes().get("messageType")).isEqualTo("warning");
     }
 
     @Test
-    void adminVariantSaveShouldAutoGenerateSku() {
+    void adminVariantSaveShouldRedirectToProductStock() {
         AdminVariantController c = new AdminVariantController();
-        BienTheMoHinhRepository repo = mock(BienTheMoHinhRepository.class);
-        ReflectionTestUtils.setField(c, "variantRepo", repo);
-        when(repo.save(any(BienTheMoHinh.class))).thenAnswer(inv -> inv.getArgument(0));
         RedirectAttributes ra = new RedirectAttributesModelMap();
         BienTheMoHinh bt = BienTheMoHinh.builder().sku("").build();
 
         String view = c.save(bt, "P1", ra);
 
-        assertThat(view).isEqualTo("redirect:/admin/variants/P1");
-        assertThat(bt.getSku()).startsWith("SKU-P1-");
+        assertThat(view).isEqualTo("redirect:/admin/products");
+        assertThat(ra.getFlashAttributes().get("message")).isEqualTo("Đã gộp phần này vào tồn kho sản phẩm. Hãy sửa giá bán và tồn kho ở Quản lý đồ chơi.");
     }
 
     @Test

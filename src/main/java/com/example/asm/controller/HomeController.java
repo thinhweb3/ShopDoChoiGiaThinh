@@ -9,9 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Controller
 public class HomeController {
@@ -26,13 +24,7 @@ public class HomeController {
     @GetMapping({"/", "/home/index"})
     public String index(Model model) {
         List<MoHinh> topItems = productService.findOn900();
-        Map<String, Integer> defaultVariantIds = new HashMap<>();
-        topItems.forEach(item -> {
-            var defaultVariant = productService.getDefaultVariant(item);
-            defaultVariantIds.put(item.getMaMoHinh(), defaultVariant != null ? defaultVariant.getMaBienThe() : null);
-        });
         model.addAttribute("topItems", topItems);
-        model.addAttribute("defaultVariantIds", defaultVariantIds);
         return "fragments/home";
     }
 }

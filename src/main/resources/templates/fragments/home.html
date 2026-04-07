@@ -68,12 +68,12 @@
                                 <a th:href="@{|/product/detail/${p.maMoHinh}|}" class="btn btn-outline-dark rounded-pill fw-semibold">
                                     Xem chi tiết
                                 </a>
-                                <a th:if="${defaultVariantIds[p.maMoHinh] != null}"
-                                   th:href="@{|/cart/add/${defaultVariantIds[p.maMoHinh]}|}"
+                                <a th:if="${@productService.isOrderable(p)}"
+                                   th:href="@{|/cart/add-product/${p.maMoHinh}|}"
                                    class="btn btn-success rounded-pill fw-semibold">
                                     <i class="fas fa-cart-plus me-1"></i> Thêm vào giỏ
                                 </a>
-                                <a th:if="${defaultVariantIds[p.maMoHinh] == null}"
+                                <a th:if="${@productService.isOrderable(p) == false}"
                                    th:href="@{|/product/detail/${p.maMoHinh}|}"
                                    class="btn btn-outline-secondary rounded-pill fw-semibold">
                                     Xem chi tiết

@@ -7,6 +7,8 @@ import com.example.asm.repository.MoHinhRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -134,6 +136,10 @@ public class ProductService {
                 .reduce(0, Integer::sum);
     }
 
+    public boolean isOrderable(MoHinh product) {
+        return isVisibleForStorefront(product) && getAvailableStock(product) > 0;
+    }
+
     private boolean matchesAnyRange(Long price, List<String> priceFilters) {
         if (price == null) {
             return false;
@@ -165,22 +171,50 @@ public class ProductService {
     }
 
     public List<BienTheMoHinh> getOrderableVariants(MoHinh product) {
-        if (product == null || product.getBienThes() == null) {
+        BienTheMoHinh defaultVariant = getDefaultVariant(product);
+        if (defaultVariant == null) {
             return List.of();
         }
-        return product.getBienThes().stream()
-                .filter(variant -> variant != null
-                        && variant.getMaBienThe() != null
-                        && variant.getGiaBan() != null
-                        && variant.getSoLuongTon() != null
-                        && variant.getSoLuongTon() > 0)
-                .sorted(Comparator.comparing(BienTheMoHinh::getGiaBan)
-                        .thenComparing(BienTheMoHinh::getMaBienThe))
-                .collect(Collectors.toList());
+        return List.of(defaultVariant);
     }
 
+    @Transactional
     public BienTheMoHinh getDefaultVariant(MoHinh product) {
-        return getOrderableVariants(product).stream().findFirst().orElse(null);
+        if (product == null || !StringUtils.hasText(product.getMaMoHinh())) {
+            return null;
+        }
+        if (!isVisibleForStorefront(product)) {
+            return null;
+        }
+
+        int stock = getAvailableStock(product);
+        if (stock <= 0) {
+            return null;
+        }
+
+        Long price = getMinPrice(product);
+        if (price == null) {
+            price = 0L;
+        }
+        List<BienTheMoHinh> variants = bienTheRepo.findByMoHinh_MaMoHinh(product.getMaMoHinh());
+        BienTheMoHinh defaultVariant = variants.stream()
+                .min(Comparator.comparing(
+                        BienTheMoHinh::getMaBienThe,
+                        Comparator.nullsLast(Integer::compareTo)))
+                .orElseGet(() -> BienTheMoHinh.builder()
+                        .moHinh(product)
+                        .kichThuoc("Mặc định")
+                        .sku(product.getMaMoHinh())
+                        .tinhTrang("Còn hàng")
+                        .build());
+
+        defaultVariant.setMoHinh(product);
+        defaultVariant.setKichThuoc("Mặc định");
+        defaultVariant.setGiaBan(price);
+        defaultVariant.setSoLuongTon(stock);
+        defaultVariant.setSku(product.getMaMoHinh());
+        defaultVariant.setTinhTrang("Còn hàng");
+        return bienTheRepo.save(defaultVariant);
     }
 
     public List<MoHinh> findTop8BestSelling() {

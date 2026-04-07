@@ -54,15 +54,11 @@ public class ProductController {
         List<MoHinh> items = totalItems == 0 ? List.of() : allItems.subList(fromIndex, toIndex);
 
         Map<String, Long> displayPrices = new HashMap<>();
-        Map<String, Integer> defaultVariantIds = new HashMap<>();
         for (MoHinh item : items) {
             displayPrices.put(item.getMaMoHinh(), productService.getMinPrice(item));
-            var defaultVariant = productService.getDefaultVariant(item);
-            defaultVariantIds.put(item.getMaMoHinh(), defaultVariant != null ? defaultVariant.getMaBienThe() : null);
         }
         model.addAttribute("items", items);
         model.addAttribute("displayPrices", displayPrices);
-        model.addAttribute("defaultVariantIds", defaultVariantIds);
         model.addAttribute("selectedPrices", selectedPrices);
         model.addAttribute("selectedCid", cid.orElse(null));
         model.addAttribute("selectedKeyword", keyword);
@@ -92,9 +88,6 @@ public class ProductController {
 
         MoHinh item = productService.findById(id);
         model.addAttribute("item", item);
-        model.addAttribute("variants", productService.getOrderableVariants(item));
-        var defaultVariant = productService.getDefaultVariant(item);
-        model.addAttribute("defaultVariantId", defaultVariant != null ? defaultVariant.getMaBienThe() : null);
 
         if (item != null && item.getDanhMuc() != null) {
             List<MoHinh> related = productService.findByCategoryId(item.getDanhMuc().getMaDanhMuc()).stream()
@@ -102,13 +95,6 @@ public class ProductController {
                     .limit(8)
                     .toList();
             model.addAttribute("relatedProducts", related);
-            Map<String, Integer> relatedDefaultVariantIds = new HashMap<>();
-            related.forEach(relatedItem -> {
-                var relatedDefaultVariant = productService.getDefaultVariant(relatedItem);
-                relatedDefaultVariantIds.put(relatedItem.getMaMoHinh(),
-                        relatedDefaultVariant != null ? relatedDefaultVariant.getMaBienThe() : null);
-            });
-            model.addAttribute("relatedDefaultVariantIds", relatedDefaultVariantIds);
         }
 
         return "product/detail";

@@ -126,9 +126,7 @@ public class AdminProductController {
 
             params.addFlashAttribute("messageType", "success");
             MoHinh savedProduct = moHinhRepo.save(mh);
-            if (!isExist) {
-                ensureDefaultVariant(savedProduct);
-            }
+            ensureDefaultVariant(savedProduct);
         } catch (Exception e) {
             e.printStackTrace();
             params.addFlashAttribute("message", "Lỗi: " + e.getMessage());
@@ -183,18 +181,16 @@ public class AdminProductController {
     }
 
     private void ensureDefaultVariant(MoHinh product) {
-        if (!variantRepo.findByMoHinh_MaMoHinh(product.getMaMoHinh()).isEmpty()) {
-            return;
-        }
-
-        variantRepo.save(BienTheMoHinh.builder()
-                .moHinh(product)
-                .kichThuoc("Mặc định")
-                .giaBan(defaultNumber(product.getGiaBan()))
-                .soLuongTon(defaultInteger(product.getTonKho()))
-                .sku(product.getMaMoHinh())
-                .tinhTrang("Còn hàng")
-                .build());
+        BienTheMoHinh defaultVariant = variantRepo.findByMoHinh_MaMoHinh(product.getMaMoHinh()).stream()
+                .findFirst()
+                .orElseGet(BienTheMoHinh::new);
+        defaultVariant.setMoHinh(product);
+        defaultVariant.setKichThuoc("Mặc định");
+        defaultVariant.setGiaBan(defaultNumber(product.getGiaBan()));
+        defaultVariant.setSoLuongTon(defaultInteger(product.getTonKho()));
+        defaultVariant.setSku(product.getMaMoHinh());
+        defaultVariant.setTinhTrang(defaultInteger(product.getTonKho()) > 0 ? "Còn hàng" : "Hết hàng");
+        variantRepo.save(defaultVariant);
     }
 
     private String defaultText(String value, String defaultValue) {
@@ -224,7 +220,7 @@ public class AdminProductController {
             params.addFlashAttribute("message", "Xóa thành công!");
             params.addFlashAttribute("messageType", "success");
         } catch (Exception e) {
-            params.addFlashAttribute("message", "Không thể xóa! Đồ chơi này đang có biến thể hoặc đơn hàng.");
+            params.addFlashAttribute("message", "Không thể xóa! Đồ chơi này đang có dữ liệu giỏ hàng, nhập kho hoặc đơn hàng.");
             params.addFlashAttribute("messageType", "error");
         }
         return "redirect:/admin/products";

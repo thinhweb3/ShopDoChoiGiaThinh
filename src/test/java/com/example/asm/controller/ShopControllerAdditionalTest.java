@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.asm.entity.BienTheMoHinh;
 import com.example.asm.entity.DanhMuc;
 import com.example.asm.entity.MoHinh;
 import com.example.asm.entity.TaiKhoan;
@@ -85,6 +86,30 @@ class ShopControllerAdditionalTest {
         assertThat(controller.add(2, null, ra)).isEqualTo("redirect:/product/list");
         assertThat(ra.getFlashAttributes().get("cartMessage")).isEqualTo("Đã thêm vào giỏ hàng.");
         verify(cart).add(user, 2, 1);
+    }
+
+    @Test
+    void cartAddProductShouldResolveHiddenDefaultVariant() {
+        CartController controller = new CartController();
+        AuthService auth = mock(AuthService.class);
+        CartService cart = mock(CartService.class);
+        ProductService productService = mock(ProductService.class);
+        TaiKhoan user = TaiKhoan.builder().maTaiKhoan(1).build();
+        MoHinh product = MoHinh.builder().maMoHinh("P1").build();
+        BienTheMoHinh variant = BienTheMoHinh.builder().maBienThe(7).moHinh(product).build();
+        RedirectAttributes ra = new RedirectAttributesModelMap();
+        ReflectionTestUtils.setField(controller, "authService", auth);
+        ReflectionTestUtils.setField(controller, "cartService", cart);
+        ReflectionTestUtils.setField(controller, "productService", productService);
+        when(auth.getUser()).thenReturn(user);
+        when(productService.findById("P1")).thenReturn(product);
+        when(productService.getDefaultVariant(product)).thenReturn(variant);
+
+        String view = controller.addProduct("P1", "https://shop.test/product/detail/P1", ra);
+
+        assertThat(view).isEqualTo("redirect:/product/detail/P1");
+        assertThat(ra.getFlashAttributes().get("cartMessage")).isEqualTo("Đã thêm vào giỏ hàng.");
+        verify(cart).add(user, 7, 1);
     }
 
     @Test
